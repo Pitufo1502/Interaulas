@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Interaulas | Colegio Interamericano</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <div class="brand"><span>⚽</span><div><strong>INTERAULAS</strong><small>Colegio Interamericano</small></div></div>
+  <nav>
+    <a href="#inicio">Inicio</a><a href="#hombres">Hombres</a><a href="#mujeres">Mujeres</a><a href="#sanciones">Sanciones</a>
+    <button id="loginBtn" class="outline">Iniciar sesión</button>
+  </nav>
+</header>
+
+<main>
+<section id="inicio" class="hero">
+  <div><p class="eyebrow">TORNEO ESCOLAR</p><h1>Interaulas <span>2026</span></h1>
+  <p>Resultados, tablas, partidos y sanciones en un solo lugar.</p></div>
+  <div class="hero-card"><div id="nextMatch">Cargando próximos partidos...</div></div>
+</section>
+
+<section id="hombres">
+  <div class="section-title"><div><p class="eyebrow">FÚTBOL MASCULINO</p><h2>Tabla de posiciones</h2></div><span class="badge">Grupo A + Grupo B</span></div>
+  <div id="menTables" class="tables-grid"></div>
+</section>
+
+<section id="mujeres">
+  <div class="section-title"><div><p class="eyebrow">FÚTBOL FEMENINO</p><h2>Tabla de posiciones</h2></div><span class="badge">Un solo grupo · Top 4</span></div>
+  <div id="womenTable"></div>
+</section>
+
+<section id="partidos">
+  <div class="section-title"><div><p class="eyebrow">CALENDARIO</p><h2>Partidos</h2></div></div>
+  <div id="matches"></div>
+</section>
+
+<section id="sanciones">
+  <div class="section-title"><div><p class="eyebrow">DISCIPLINA</p><h2>Sanciones</h2></div><button id="addSanctionBtn" class="primary hidden">+ Agregar sanción</button></div>
+  <div id="sanctions"></div>
+</section>
+</main>
+
+<div id="authModal" class="modal hidden">
+  <div class="modal-box"><button class="close" onclick="closeModal()">×</button>
+    <h2>Acceso de organizadores</h2><p>Solo usuarios autorizados pueden editar resultados y sanciones.</p>
+    <input id="email" type="email" placeholder="Correo">
+    <input id="password" type="password" placeholder="Contraseña">
+    <button id="authAction" class="primary">Iniciar sesión</button>
+    <p id="authMsg" class="msg"></p>
+  </div>
+</div>
+
+<div id="editModal" class="modal hidden">
+  <div class="modal-box"><button class="close" onclick="closeEdit()">×</button>
+    <h2 id="editTitle">Actualizar partido</h2>
+    <div id="editBody"></div>
+  </div>
+</div>
+
+<footer>Interaulas · Colegio Interamericano · Panel público y edición para organizadores</footer>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
