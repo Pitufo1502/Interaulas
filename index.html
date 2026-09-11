@@ -9,10 +9,14 @@
 <body>
 <header>
   <div class="brand"><span>⚽</span><div><strong>INTERAULAS</strong><small>Colegio Interamericano</small></div></div>
-  <nav>
-    <a href="#inicio">Inicio</a><a href="#hombres">Hombres</a><a href="#mujeres">Mujeres</a><a href="#sanciones">Sanciones</a>
-    <button id="loginBtn" class="outline">Iniciar sesión</button>
-  </nav>
+ <nav>
+  <a href="#inicio">Inicio</a>
+  <a href="#hombres">Hombres</a>
+  <a href="#mujeres">Mujeres</a>
+  <a href="#goleadores">Goleadores</a>
+  <a href="#sanciones">Sanciones</a>
+  <button id="loginBtn" class="outline">Iniciar sesión</button>
+</nav>
 </header>
 
 <main>
@@ -30,6 +34,63 @@
 <section id="mujeres">
   <div class="section-title"><div><p class="eyebrow">FÚTBOL FEMENINO</p><h2>Tabla de posiciones</h2></div><span class="badge">Un solo grupo · Top 4</span></div>
   <div id="womenTable"></div>
+</section>
+
+  <section id="goleadores">
+  <div class="section-title">
+    <div>
+      <p class="eyebrow">GOLEADORES</p>
+      <h2>Máximos goleadores</h2>
+    </div>
+
+    <button id="addScorerBtn" class="primary">
+      + Agregar goleador
+    </button>
+  </div>
+
+  <div class="tables-grid">
+
+    <div class="card">
+      <h3>Hombres</h3>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Jugador</th>
+              <th>Equipo</th>
+              <th>Goles</th>
+              <th></th>
+            </tr>
+          </thead>
+
+          <tbody id="menScorers"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Mujeres</h3>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Jugadora</th>
+              <th>Equipo</th>
+              <th>Goles</th>
+              <th></th>
+            </tr>
+          </thead>
+
+          <tbody id="womenScorers"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
 </section>
 
 <section id="partidos">
@@ -63,5 +124,5 @@
 <footer>Interaulas · Colegio Interamericano · Panel público y edición para organizadores</footer>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="config.js"></script>
-<script src="app.js?v=2"></script></body>
+<script src="app.js?v=3"></script></body>
 </html>
