@@ -116,17 +116,30 @@ let session = null;
 
 document.addEventListener("DOMContentLoaded", async () => {
 
-  document.getElementById("loginBtn").onclick = openModal;
+  const loginBtn = document.getElementById("loginBtn");
+  const authAction = document.getElementById("authAction");
+  const addSanctionBtn = document.getElementById("addSanctionBtn");
+  const addScorerBtn = document.getElementById("addScorerBtn");
 
-  document.getElementById("authAction").onclick = auth;
+  if (loginBtn) {
+    loginBtn.onclick = openModal;
+  }
 
-  document.getElementById("addSanctionBtn").onclick =
-    openSanctionForm;
+  if (authAction) {
+    authAction.onclick = auth;
+  }
 
-  document.getElementById("addScorerBtn").onclick =
-    openScorerForm;
+  if (addSanctionBtn) {
+    addSanctionBtn.onclick = openSanctionForm;
+  }
+
+  if (addScorerBtn) {
+    addScorerBtn.onclick = openScorerForm;
+  }
 
   await refresh();
+
+});
 
 });
 
