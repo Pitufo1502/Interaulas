@@ -197,41 +197,40 @@ async function refresh() {
 
 function setEditorUI() {
 
-  const loginButton =
-    document.getElementById("loginBtn");
+  const loginButton = document.getElementById("loginBtn");
 
-  loginButton.textContent = session
-    ? "Cerrar sesión"
-    : "Iniciar sesión";
+  if (loginButton) {
+    loginButton.textContent = session
+      ? "Cerrar sesión"
+      : "Iniciar sesión";
 
-  loginButton.onclick = session
-    ? logout
-    : openModal;
-
-
-  // IMPORTANTE:
-  // El botón de goleadores SIEMPRE se muestra.
-  // Si no hay sesión, openScorerForm() pedirá login.
+    loginButton.onclick = session
+      ? logout
+      : openModal;
+  }
 
   const scorerButton =
     document.getElementById("addScorerBtn");
 
-  scorerButton.classList.remove("hidden");
-  scorerButton.style.display = "inline-block";
-
-
-  // Sanciones solamente para organizadores
+  if (scorerButton) {
+    scorerButton.classList.remove("hidden");
+    scorerButton.style.display = "inline-block";
+    scorerButton.onclick = openScorerForm;
+  }
 
   const sanctionButton =
     document.getElementById("addSanctionBtn");
 
-  sanctionButton.classList.toggle(
-    "hidden",
-    !session
-  );
+  if (sanctionButton) {
+    sanctionButton.classList.toggle(
+      "hidden",
+      !session
+    );
+
+    sanctionButton.onclick = openSanctionForm;
+  }
 
 }
-
 
 // ============================================
 // LOGIN
