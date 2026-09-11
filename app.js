@@ -209,14 +209,17 @@ function setEditorUI() {
       : openModal;
   }
 
-  const scorerButton =
-    document.getElementById("addScorerBtn");
+const scorerButton =
+  document.getElementById("addScorerBtn");
 
-  if (scorerButton) {
-    scorerButton.classList.remove("hidden");
-    scorerButton.style.display = "inline-block";
-    scorerButton.onclick = openScorerForm;
-  }
+if (scorerButton) {
+  scorerButton.classList.toggle("hidden", !session);
+  scorerButton.style.display = session
+    ? "inline-block"
+    : "none";
+
+  scorerButton.onclick = openScorerForm;
+}
 
   const sanctionButton =
     document.getElementById("addSanctionBtn");
