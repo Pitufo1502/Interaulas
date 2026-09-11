@@ -221,14 +221,14 @@ function setEditorUI() {
   const sanctionButton =
     document.getElementById("addSanctionBtn");
 
-  if (sanctionButton) {
-    sanctionButton.classList.toggle(
-      "hidden",
-      !session
-    );
+ if (sanctionButton) {
+  sanctionButton.classList.toggle(
+    "hidden",
+    !session
+  );
 
-    sanctionButton.onclick = openSanctionForm;
-  }
+  sanctionButton.onclick = openSanctionForm;
+}
 
 }
 
