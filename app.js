@@ -209,18 +209,19 @@ function setEditorUI() {
       : openModal;
   }
 
-const scorerButton =
-  document.getElementById("addScorerBtn");
+const scorerButton = document.getElementById("addScorerBtn");
 
 if (scorerButton) {
-  scorerButton.classList.toggle("hidden", !session);
-  scorerButton.style.display = session
-    ? "inline-block"
-    : "none";
-
-  scorerButton.onclick = openScorerForm;
+  if (session) {
+    scorerButton.classList.remove("hidden");
+    scorerButton.style.display = "inline-block";
+    scorerButton.onclick = openScorerForm;
+  } else {
+    scorerButton.classList.add("hidden");
+    scorerButton.style.display = "none";
+    scorerButton.onclick = null;
+  }
 }
-
   const sanctionButton =
     document.getElementById("addSanctionBtn");
 
