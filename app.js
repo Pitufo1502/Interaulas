@@ -141,8 +141,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 });
 
-});
-
 
 // ============================================
 // MODALES
