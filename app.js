@@ -52,8 +52,10 @@ const MATCH_DATES = {
   6: "2026-09-17",
   7: "2026-09-18",
 
+  // IMPORTANTE:
   // Partido 9 = 22 de septiembre
   // Partido 8 = 23 de septiembre
+
   9: "2026-09-22",
   8: "2026-09-23",
 
@@ -107,29 +109,26 @@ const ALIASES = {
 // ============================================================
 
 let currentSession = null;
-
 let editingMatchId = null;
 let editingSanctionId = null;
 let editingScorerId = null;
-let editingCleanlinessId = null;
 
 
 // ============================================================
 // INICIO
 // ============================================================
 
-document.addEventListener(
-  "DOMContentLoaded",
-  async function () {
+document.addEventListener("DOMContentLoaded", async () => {
 
-    await checkSession();
+  console.log("INTERAULAS: DOM cargado");
 
-    await refreshAll();
+  await checkSession();
 
-    setupButtons();
+  await refreshAll();
 
-  }
-);
+  setupButtons();
+
+});
 
 
 // ============================================================
@@ -138,31 +137,56 @@ document.addEventListener(
 
 function setupButtons() {
 
-  const loginButton =
-    document.getElementById(
-      "login-button"
-    );
+  // LOGIN
+  const loginBtn = document.getElementById("loginBtn");
 
-  if (loginButton) {
+  if (loginBtn) {
 
-    loginButton.addEventListener(
+    loginBtn.addEventListener("click", () => {
+
+      if (currentSession) {
+
+        logout();
+
+      } else {
+
+        const modal =
+          document.getElementById("authModal");
+
+        if (modal) {
+          modal.style.display = "flex";
+        }
+
+      }
+
+    });
+
+  }
+
+
+  // AGREGAR SANCIÓN
+  const addSanctionBtn =
+    document.getElementById("addSanctionBtn");
+
+  if (addSanctionBtn) {
+
+    addSanctionBtn.addEventListener(
       "click",
-      login
+      openSanctionModal
     );
 
   }
 
 
-  const logoutButton =
-    document.getElementById(
-      "logout-button"
-    );
+  // AGREGAR GOLEADOR
+  const addScorerBtn =
+    document.getElementById("addScorerBtn");
 
-  if (logoutButton) {
+  if (addScorerBtn) {
 
-    logoutButton.addEventListener(
+    addScorerBtn.addEventListener(
       "click",
-      logout
+      openScorerModal
     );
 
   }
@@ -198,23 +222,27 @@ async function checkSession() {
 }
 
 
+// ============================================================
+// LOGIN
+// ============================================================
+
 async function login() {
 
   const emailInput =
-    document.getElementById(
-      "login-email"
-    );
+    document.getElementById("email");
 
   const passwordInput =
-    document.getElementById(
-      "login-password"
+    document.getElementById("password");
+
+  const message =
+    document.getElementById("authMessage");
+
+
+  if (!emailInput || !passwordInput) {
+
+    console.error(
+      "No se encontraron los campos de login."
     );
-
-
-  if (
-    !emailInput ||
-    !passwordInput
-  ) {
 
     return;
 
@@ -228,14 +256,12 @@ async function login() {
     passwordInput.value;
 
 
-  if (
-    !email ||
-    !password
-  ) {
+  if (!email || !password) {
 
-    alert(
-      "Ingresa tu correo y contraseña."
-    );
+    if (message) {
+      message.textContent =
+        "Ingresa tu correo y contraseña.";
+    }
 
     return;
 
@@ -244,16 +270,22 @@ async function login() {
 
   const result =
     await db.auth.signInWithPassword({
-      email: email,
-      password: password
+      email,
+      password
     });
 
 
   if (result.error) {
 
-    alert(
-      result.error.message
+    console.error(
+      "Error de login:",
+      result.error
     );
+
+    if (message) {
+      message.textContent =
+        result.error.message;
+    }
 
     return;
 
@@ -263,12 +295,27 @@ async function login() {
   currentSession =
     result.data.session;
 
+
+  closeModal("authModal");
+
+  emailInput.value = "";
+  passwordInput.value = "";
+
+  if (message) {
+    message.textContent = "";
+  }
+
+
   updateAuthUI();
 
   await refreshAll();
 
 }
 
+
+// ============================================================
+// LOGOUT
+// ============================================================
 
 async function logout() {
 
@@ -283,50 +330,48 @@ async function logout() {
 }
 
 
+// ============================================================
+// ACTUALIZAR UI DE LOGIN
+// ============================================================
+
 function updateAuthUI() {
 
-  const loginArea =
-    document.getElementById(
-      "login-area"
-    );
+  const loginBtn =
+    document.getElementById("loginBtn");
 
-  const adminArea =
-    document.getElementById(
-      "admin-area"
-    );
+  const addSanctionBtn =
+    document.getElementById("addSanctionBtn");
+
+  const addScorerBtn =
+    document.getElementById("addScorerBtn");
 
 
-  if (currentSession) {
+  if (loginBtn) {
 
-    if (loginArea) {
+    loginBtn.textContent =
+      currentSession
+        ? "Cerrar sesión"
+        : "Iniciar sesión";
 
-      loginArea.style.display =
-        "none";
+  }
 
-    }
 
-    if (adminArea) {
+  if (addSanctionBtn) {
 
-      adminArea.style.display =
-        "block";
+    addSanctionBtn.style.display =
+      currentSession
+        ? "block"
+        : "none";
 
-    }
+  }
 
-  } else {
 
-    if (loginArea) {
+  if (addScorerBtn) {
 
-      loginArea.style.display =
-        "block";
-
-    }
-
-    if (adminArea) {
-
-      adminArea.style.display =
-        "none";
-
-    }
+    addScorerBtn.style.display =
+      currentSession
+        ? "block"
+        : "none";
 
   }
 
@@ -339,6 +384,8 @@ function updateAuthUI() {
 
 async function refreshAll() {
 
+  console.log("INTERAULAS: actualizando datos...");
+
   await loadMatches();
 
   await loadSanctions();
@@ -346,6 +393,8 @@ async function refreshAll() {
   await loadScorers();
 
   await loadCleanliness();
+
+  console.log("INTERAULAS: datos cargados.");
 
 }
 
@@ -357,20 +406,13 @@ async function refreshAll() {
 function normalizeTeam(team) {
 
   if (!team) {
-
     return "";
-
   }
-
 
   const name =
     String(team).trim();
 
-
-  return (
-    ALIASES[name] ||
-    name
-  );
+  return ALIASES[name] || name;
 
 }
 
@@ -388,7 +430,6 @@ function isMenTeam(team) {
 
   const name =
     normalizeTeam(team);
-
 
   return (
     MEN_A.includes(name) ||
@@ -409,14 +450,13 @@ function getGender(home, away) {
 
   }
 
-
   return "M";
 
 }
 
 
 // ============================================================
-// PARTIDOS - CARGAR
+// PARTIDOS
 // ============================================================
 
 async function loadMatches() {
@@ -463,9 +503,7 @@ function getMatchNumber(match) {
     match.day !== null
   ) {
 
-    return Number(
-      match.day
-    );
+    return Number(match.day);
 
   }
 
@@ -475,9 +513,7 @@ function getMatchNumber(match) {
     match.match_number !== null
   ) {
 
-    return Number(
-      match.match_number
-    );
+    return Number(match.match_number);
 
   }
 
@@ -505,16 +541,12 @@ function getMatchDate(match) {
 
 
   if (match.date) {
-
     return match.date;
-
   }
 
 
   if (match.match_date) {
-
     return match.match_date;
-
   }
 
 
@@ -526,27 +558,18 @@ function getMatchDate(match) {
 function formatDate(dateString) {
 
   if (!dateString) {
-
     return "";
-
   }
 
 
   const date =
     new Date(
-      dateString +
-      "T12:00:00"
+      dateString + "T12:00:00"
     );
 
 
-  if (
-    isNaN(
-      date.getTime()
-    )
-  ) {
-
+  if (isNaN(date.getTime())) {
     return dateString;
-
   }
 
 
@@ -568,29 +591,25 @@ function formatDate(dateString) {
 
 function sortMatchesByDate(matches) {
 
-  return [...matches].sort(
-    function (a, b) {
+  return [...matches].sort((a, b) => {
 
-      const dateA =
-        getMatchDate(a);
+    const dateA =
+      getMatchDate(a);
 
-      const dateB =
-        getMatchDate(b);
+    const dateB =
+      getMatchDate(b);
 
 
-      return (
-        new Date(
-          dateA +
-          "T12:00:00"
-        ) -
-        new Date(
-          dateB +
-          "T12:00:00"
-        )
-      );
+    if (!dateA) return 1;
+    if (!dateB) return -1;
 
-    }
-  );
+
+    return (
+      new Date(dateA + "T12:00:00") -
+      new Date(dateB + "T12:00:00")
+    );
+
+  });
 
 }
 
@@ -669,86 +688,42 @@ function hasScore(match) {
 
 function renderMatches(matches) {
 
+  const container =
+    document.getElementById("matches");
+
+
+  if (!container) {
+
+    console.error(
+      "No existe #matches en index.html"
+    );
+
+    return;
+
+  }
+
+
   const sorted =
     sortMatchesByDate(matches);
 
 
-  const menMatches =
-    sorted.filter(
-      function (match) {
+  if (!sorted.length) {
 
-        return (
-          getGender(
-            match.home_team,
-            match.away_team
-          ) === "M"
-        );
+    container.innerHTML = `
+      <div class="empty-state">
+        No hay partidos registrados.
+      </div>
+    `;
 
-      }
-    );
-
-
-  const womenMatches =
-    sorted.filter(
-      function (match) {
-
-        return (
-          getGender(
-            match.home_team,
-            match.away_team
-          ) === "F"
-        );
-
-      }
-    );
-
-
-  const menContainer =
-    document.getElementById(
-      "men-matches"
-    ) ||
-    document.getElementById(
-      "matches-men"
-    ) ||
-    document.getElementById(
-      "boys-matches"
-    );
-
-
-  const womenContainer =
-    document.getElementById(
-      "women-matches"
-    ) ||
-    document.getElementById(
-      "matches-women"
-    ) ||
-    document.getElementById(
-      "girls-matches"
-    );
-
-
-  if (menContainer) {
-
-    menContainer.innerHTML =
-      menMatches
-        .map(
-          matchCardHTML
-        )
-        .join("");
+    return;
 
   }
 
 
-  if (womenContainer) {
-
-    womenContainer.innerHTML =
-      womenMatches
-        .map(
-          matchCardHTML
-        )
-        .join("");
-
-  }
+  container.innerHTML =
+    sorted
+      .map(matchCardHTML)
+      .join("");
 
 }
 
@@ -760,15 +735,10 @@ function renderMatches(matches) {
 function matchCardHTML(match) {
 
   const home =
-    normalizeTeam(
-      match.home_team
-    );
-
+    normalizeTeam(match.home_team);
 
   const away =
-    normalizeTeam(
-      match.away_team
-    );
+    normalizeTeam(match.away_team);
 
 
   const homeScore =
@@ -781,13 +751,11 @@ function matchCardHTML(match) {
   const number =
     getMatchNumber(match);
 
-
   const date =
     getMatchDate(match);
 
 
-  let score =
-    "VS";
+  let score = "VS";
 
 
   if (
@@ -796,23 +764,25 @@ function matchCardHTML(match) {
   ) {
 
     score =
-      homeScore +
-      " - " +
-      awayScore;
+      `${homeScore} - ${awayScore}`;
 
   }
 
 
-  let adminButton =
-    "";
+  const gender =
+    getGender(home, away);
+
+
+  let adminButton = "";
 
 
   if (currentSession) {
 
     adminButton = `
       <button
+        type="button"
         class="admin-button"
-        onclick="editMatch(${match.id})">
+        onclick="editMatch(${Number(match.id)})">
         ✏️ Editar
       </button>
     `;
@@ -835,33 +805,31 @@ function matchCardHTML(match) {
           )}
         </span>
 
+        <span>
+          ${gender === "M" ? "HOMBRES" : "MUJERES"}
+        </span>
+
       </div>
 
 
       <div class="match-teams">
 
         <div class="team">
-
           <strong>
             ${escapeHTML(home)}
           </strong>
-
         </div>
 
 
         <div class="score">
-
           ${score}
-
         </div>
 
 
         <div class="team">
-
           <strong>
             ${escapeHTML(away)}
           </strong>
-
         </div>
 
       </div>
@@ -882,21 +850,16 @@ function matchCardHTML(match) {
 function renderNext(matches) {
 
   const container =
-    document.getElementById(
-      "next-match"
-    );
+    document.getElementById("nextMatch");
 
 
   if (!container) {
-
     return;
-
   }
 
 
   const today =
     new Date();
-
 
   today.setHours(
     0,
@@ -908,31 +871,26 @@ function renderNext(matches) {
 
   const upcoming =
     sortMatchesByDate(matches)
-      .filter(
-        function (match) {
+      .filter(match => {
 
-          const dateString =
-            getMatchDate(match);
-
-
-          if (!dateString) {
-
-            return false;
-
-          }
+        const dateString =
+          getMatchDate(match);
 
 
-          const date =
-            new Date(
-              dateString +
-              "T12:00:00"
-            );
-
-
-          return date >= today;
-
+        if (!dateString) {
+          return false;
         }
-      );
+
+
+        const date =
+          new Date(
+            dateString + "T12:00:00"
+          );
+
+
+        return date >= today;
+
+      });
 
 
   if (!upcoming.length) {
@@ -947,7 +905,7 @@ function renderNext(matches) {
           </span>
 
           <span>
-            No hay partidos próximos
+            No hay partidos próximos.
           </span>
 
         </div>
@@ -965,15 +923,10 @@ function renderNext(matches) {
 
 
   const home =
-    normalizeTeam(
-      next.home_team
-    );
-
+    normalizeTeam(next.home_team);
 
   const away =
-    normalizeTeam(
-      next.away_team
-    );
+    normalizeTeam(next.away_team);
 
 
   container.innerHTML = `
@@ -1035,9 +988,7 @@ function renderNext(matches) {
 async function editMatch(id) {
 
   if (!currentSession) {
-
     return;
-
   }
 
 
@@ -1051,9 +1002,7 @@ async function editMatch(id) {
 
   if (result.error) {
 
-    alert(
-      result.error.message
-    );
+    alert(result.error.message);
 
     return;
 
@@ -1069,35 +1018,21 @@ async function editMatch(id) {
 
 
   const title =
-    document.getElementById(
-      "edit-match-title"
-    );
+    document.getElementById("editMatchTitle");
+
+  const homeInput =
+    document.getElementById("homeScore");
+
+  const awayInput =
+    document.getElementById("awayScore");
 
 
   if (title) {
 
     title.textContent =
-      normalizeTeam(
-        match.home_team
-      ) +
-      " vs " +
-      normalizeTeam(
-        match.away_team
-      );
+      `${normalizeTeam(match.home_team)} vs ${normalizeTeam(match.away_team)}`;
 
   }
-
-
-  const homeInput =
-    document.getElementById(
-      "edit-home-score"
-    );
-
-
-  const awayInput =
-    document.getElementById(
-      "edit-away-score"
-    );
 
 
   if (homeInput) {
@@ -1117,9 +1052,7 @@ async function editMatch(id) {
 
 
   const modal =
-    document.getElementById(
-      "match-modal"
-    );
+    document.getElementById("editModal");
 
 
   if (modal) {
@@ -1149,49 +1082,33 @@ async function saveMatch() {
 
 
   const homeInput =
-    document.getElementById(
-      "edit-home-score"
-    );
-
+    document.getElementById("homeScore");
 
   const awayInput =
-    document.getElementById(
-      "edit-away-score"
-    );
+    document.getElementById("awayScore");
 
 
-  if (
-    !homeInput ||
-    !awayInput
-  ) {
-
+  if (!homeInput || !awayInput) {
     return;
-
   }
 
 
   const homeScore =
     homeInput.value === ""
       ? null
-      : Number(
-          homeInput.value
-        );
+      : Number(homeInput.value);
 
 
   const awayScore =
     awayInput.value === ""
       ? null
-      : Number(
-          awayInput.value
-        );
+      : Number(awayInput.value);
 
 
   if (
     homeScore !== null &&
     (
-      !Number.isInteger(
-        homeScore
-      ) ||
+      !Number.isInteger(homeScore) ||
       homeScore < 0
     )
   ) {
@@ -1208,9 +1125,7 @@ async function saveMatch() {
   if (
     awayScore !== null &&
     (
-      !Number.isInteger(
-        awayScore
-      ) ||
+      !Number.isInteger(awayScore) ||
       awayScore < 0
     )
   ) {
@@ -1228,23 +1143,15 @@ async function saveMatch() {
     await db
       .from("matches")
       .update({
-        home_score:
-          homeScore,
-
-        away_score:
-          awayScore
+        home_score: homeScore,
+        away_score: awayScore
       })
-      .eq(
-        "id",
-        editingMatchId
-      );
+      .eq("id", editingMatchId);
 
 
   if (result.error) {
 
-    alert(
-      result.error.message
-    );
+    alert(result.error.message);
 
     return;
 
@@ -1255,10 +1162,7 @@ async function saveMatch() {
     null;
 
 
-  closeModal(
-    "match-modal"
-  );
-
+  closeModal("editModal");
 
   await loadMatches();
 
@@ -1292,53 +1196,47 @@ function renderTables(matches) {
     );
 
 
-  const menAContainer =
-    document.getElementById(
-      "men-table-a"
-    ) ||
-    document.getElementById(
-      "standings-men-a"
-    );
-
-
-  const menBContainer =
-    document.getElementById(
-      "men-table-b"
-    ) ||
-    document.getElementById(
-      "standings-men-b"
-    );
+  const menContainer =
+    document.getElementById("menTables");
 
 
   const womenContainer =
-    document.getElementById(
-      "women-table"
-    ) ||
-    document.getElementById(
-      "standings-women"
-    );
+    document.getElementById("womenTable");
 
 
-  if (menAContainer) {
+  if (menContainer) {
 
-    menAContainer.innerHTML =
-      standingsHTML(tableA);
+    menContainer.innerHTML = `
 
-  }
+      <div class="card">
+
+        <h3>Grupo A</h3>
+
+        ${standingsHTML(tableA)}
+
+      </div>
 
 
-  if (menBContainer) {
+      <div class="card">
 
-    menBContainer.innerHTML =
-      standingsHTML(tableB);
+        <h3>Grupo B</h3>
+
+        ${standingsHTML(tableB)}
+
+      </div>
+
+    `;
 
   }
 
 
   if (womenContainer) {
 
-    womenContainer.innerHTML =
-      standingsHTML(tableWomen);
+    womenContainer.innerHTML = `
+      <div class="card">
+        ${standingsHTML(tableWomen)}
+      </div>
+    `;
 
   }
 
@@ -1357,193 +1255,151 @@ function createStandings(
   const table = {};
 
 
-  teams.forEach(
-    function (team) {
+  teams.forEach(team => {
 
-      table[team] = {
+    table[team] = {
 
-        team: team,
+      team,
 
-        played: 0,
+      played: 0,
 
-        wins: 0,
+      wins: 0,
 
-        draws: 0,
+      draws: 0,
 
-        losses: 0,
+      losses: 0,
 
-        goalsFor: 0,
+      goalsFor: 0,
 
-        goalsAgainst: 0,
+      goalsAgainst: 0,
 
-        goalDifference: 0,
+      goalDifference: 0,
 
-        points: 0
+      points: 0
 
-      };
+    };
+
+  });
+
+
+  matches.forEach(match => {
+
+    if (!hasScore(match)) {
+      return;
+    }
+
+
+    const home =
+      normalizeTeam(match.home_team);
+
+    const away =
+      normalizeTeam(match.away_team);
+
+
+    if (
+      !table[home] ||
+      !table[away]
+    ) {
+
+      return;
 
     }
-  );
 
 
-  matches.forEach(
-    function (match) {
+    const homeScore =
+      Number(getHomeScore(match));
 
-      if (!hasScore(match)) {
-
-        return;
-
-      }
+    const awayScore =
+      Number(getAwayScore(match));
 
 
-      const home =
-        normalizeTeam(
-          match.home_team
-        );
+    table[home].played++;
+    table[away].played++;
 
 
-      const away =
-        normalizeTeam(
-          match.away_team
-        );
+    table[home].goalsFor +=
+      homeScore;
+
+    table[home].goalsAgainst +=
+      awayScore;
 
 
-      if (
-        !table[home] ||
-        !table[away]
-      ) {
+    table[away].goalsFor +=
+      awayScore;
 
-        return;
-
-      }
+    table[away].goalsAgainst +=
+      homeScore;
 
 
-      const homeScore =
-        Number(
-          getHomeScore(match)
-        );
+    if (homeScore > awayScore) {
 
+      table[home].wins++;
+      table[away].losses++;
 
-      const awayScore =
-        Number(
-          getAwayScore(match)
-        );
-
-
-      table[home].played++;
-
-      table[away].played++;
-
-
-      table[home].goalsFor +=
-        homeScore;
-
-
-      table[home].goalsAgainst +=
-        awayScore;
-
-
-      table[away].goalsFor +=
-        awayScore;
-
-
-      table[away].goalsAgainst +=
-        homeScore;
-
-
-      if (
-        homeScore >
-        awayScore
-      ) {
-
-        table[home].wins++;
-
-        table[away].losses++;
-
-        table[home].points += 3;
-
-      }
-
-      else if (
-        awayScore >
-        homeScore
-      ) {
-
-        table[away].wins++;
-
-        table[home].losses++;
-
-        table[away].points += 3;
-
-      }
-
-      else {
-
-        table[home].draws++;
-
-        table[away].draws++;
-
-        table[home].points++;
-
-        table[away].points++;
-
-      }
+      table[home].points += 3;
 
     }
-  );
+
+    else if (awayScore > homeScore) {
+
+      table[away].wins++;
+      table[home].losses++;
+
+      table[away].points += 3;
+
+    }
+
+    else {
+
+      table[home].draws++;
+      table[away].draws++;
+
+      table[home].points++;
+      table[away].points++;
+
+    }
+
+  });
 
 
   const rows =
     Object.values(table);
 
 
-  rows.forEach(
-    function (row) {
+  rows.forEach(row => {
 
-      row.goalDifference =
-        row.goalsFor -
-        row.goalsAgainst;
+    row.goalDifference =
+      row.goalsFor -
+      row.goalsAgainst;
+
+  });
+
+
+  rows.sort((a, b) => {
+
+    if (b.points !== a.points) {
+
+      return b.points - a.points;
 
     }
-  );
 
 
-  rows.sort(
-    function (a, b) {
-
-      if (
-        b.points !==
-        a.points
-      ) {
-
-        return (
-          b.points -
-          a.points
-        );
-
-      }
-
-
-      if (
-        b.goalDifference !==
-        a.goalDifference
-      ) {
-
-        return (
-          b.goalDifference -
-          a.goalDifference
-        );
-
-      }
-
+    if (
+      b.goalDifference !==
+      a.goalDifference
+    ) {
 
       return (
-        b.goalsFor -
-        a.goalsFor
+        b.goalDifference -
+        a.goalDifference
       );
 
     }
-  );
+
+
+    return b.goalsFor - a.goalsFor;
+
+  });
 
 
   return rows;
@@ -1552,7 +1408,7 @@ function createStandings(
 
 
 // ============================================================
-// HTML TABLA
+// HTML TABLA DE POSICIONES
 // ============================================================
 
 function standingsHTML(rows) {
@@ -1563,86 +1419,66 @@ function standingsHTML(rows) {
       <div class="standings-row standings-header">
 
         <span>#</span>
-
         <span>Equipo</span>
-
         <span>PJ</span>
-
         <span>G</span>
-
         <span>E</span>
-
         <span>P</span>
-
         <span>GF</span>
-
         <span>GC</span>
-
         <span>DG</span>
-
         <span>PTS</span>
 
       </div>
 
 
-      ${rows
-        .map(
-          function (
-            row,
-            index
-          ) {
+      ${rows.map((row, index) => `
 
-            return `
-              <div class="standings-row">
+        <div class="standings-row">
 
-                <span>
-                  ${index + 1}
-                </span>
+          <span>
+            ${index + 1}
+          </span>
 
-                <span>
-                  ${escapeHTML(
-                    row.team
-                  )}
-                </span>
+          <span>
+            ${escapeHTML(row.team)}
+          </span>
 
-                <span>
-                  ${row.played}
-                </span>
+          <span>
+            ${row.played}
+          </span>
 
-                <span>
-                  ${row.wins}
-                </span>
+          <span>
+            ${row.wins}
+          </span>
 
-                <span>
-                  ${row.draws}
-                </span>
+          <span>
+            ${row.draws}
+          </span>
 
-                <span>
-                  ${row.losses}
-                </span>
+          <span>
+            ${row.losses}
+          </span>
 
-                <span>
-                  ${row.goalsFor}
-                </span>
+          <span>
+            ${row.goalsFor}
+          </span>
 
-                <span>
-                  ${row.goalsAgainst}
-                </span>
+          <span>
+            ${row.goalsAgainst}
+          </span>
 
-                <span>
-                  ${row.goalDifference}
-                </span>
+          <span>
+            ${row.goalDifference}
+          </span>
 
-                <strong>
-                  ${row.points}
-                </strong>
+          <strong>
+            ${row.points}
+          </strong>
 
-              </div>
-            `;
+        </div>
 
-          }
-        )
-        .join("")}
+      `).join("")}
 
     </div>
   `;
@@ -1681,23 +1517,14 @@ async function loadSanctions() {
 }
 
 
-function renderSanctions(
-  sanctions
-) {
+function renderSanctions(sanctions) {
 
   const container =
-    document.getElementById(
-      "sanctions-list"
-    ) ||
-    document.getElementById(
-      "sanctions"
-    );
+    document.getElementById("sanctions");
 
 
   if (!container) {
-
     return;
-
   }
 
 
@@ -1716,91 +1543,84 @@ function renderSanctions(
 
   container.innerHTML =
     sanctions
-      .map(
-        function (sanction) {
+      .map(sanction => {
 
-          let buttons =
-            "";
+        const student =
+          sanction.student ||
+          sanction.player ||
+          sanction.name ||
+          "";
 
 
-          if (currentSession) {
+        const team =
+          sanction.team ||
+          sanction.grade ||
+          "";
 
-            buttons = `
+
+        const reason =
+          sanction.reason ||
+          sanction.description ||
+          "";
+
+
+        const buttons =
+          currentSession
+            ? `
               <div class="admin-actions">
 
                 <button
+                  type="button"
                   class="admin-button"
-                  onclick="editSanction(${sanction.id})">
+                  onclick="editSanction(${Number(sanction.id)})">
                   ✏️ Editar
                 </button>
 
                 <button
+                  type="button"
                   class="admin-button danger"
-                  onclick="deleteSanction(${sanction.id})">
+                  onclick="deleteSanction(${Number(sanction.id)})">
                   🗑️ Eliminar
                 </button>
 
               </div>
-            `;
-
-          }
-
-
-          const student =
-            sanction.student ||
-            sanction.player ||
-            sanction.name ||
-            "";
+            `
+            : "";
 
 
-          const team =
-            sanction.team ||
-            sanction.grade ||
-            "";
+        return `
+          <div class="sanction-card">
 
-
-          const reason =
-            sanction.reason ||
-            sanction.description ||
-            "";
-
-
-          return `
-            <div class="sanction-card">
-
-              <div class="sanction-title">
-                ${escapeHTML(student)}
-              </div>
-
-              <div class="sanction-info">
-                ${escapeHTML(team)}
-              </div>
-
-              <div class="sanction-description">
-                ${escapeHTML(reason)}
-              </div>
-
-              ${
-                sanction.date
-                  ? `
-                    <div class="sanction-date">
-                      ${escapeHTML(
-                        String(
-                          sanction.date
-                        )
-                      )}
-                    </div>
-                  `
-                  : ""
-              }
-
-              ${buttons}
-
+            <div class="sanction-title">
+              ${escapeHTML(student)}
             </div>
-          `;
 
-        }
-      )
+            <div class="sanction-info">
+              ${escapeHTML(team)}
+            </div>
+
+            <div class="sanction-description">
+              ${escapeHTML(reason)}
+            </div>
+
+            ${
+              sanction.date
+                ? `
+                  <div class="sanction-date">
+                    ${escapeHTML(
+                      String(sanction.date)
+                    )}
+                  </div>
+                `
+                : ""
+            }
+
+            ${buttons}
+
+          </div>
+        `;
+
+      })
       .join("");
 
 }
@@ -1813,69 +1633,64 @@ function renderSanctions(
 function openSanctionModal() {
 
   if (!currentSession) {
-
     return;
-
-  }
-
-
-  editingSanctionId =
-    null;
-
-
-  const modal =
-    document.getElementById(
-      "sanction-modal"
-    );
-
-
-  if (modal) {
-
-    modal.style.display =
-      "flex";
-
-  }
-
-}
-
-
-async function addSanction() {
-
-  if (!currentSession) {
-
-    return;
-
   }
 
 
   const student =
-    document.getElementById(
-      "sanction-student"
-    )?.value.trim();
+    prompt("Nombre del estudiante:");
+
+  if (student === null) {
+    return;
+  }
 
 
   const team =
-    document.getElementById(
-      "sanction-team"
-    )?.value.trim();
+    prompt("Grado / equipo:");
+
+  if (team === null) {
+    return;
+  }
 
 
   const reason =
-    document.getElementById(
-      "sanction-reason"
-    )?.value.trim();
+    prompt("Razón de la sanción:");
+
+  if (reason === null) {
+    return;
+  }
 
 
   const date =
-    document.getElementById(
-      "sanction-date"
-    )?.value;
+    prompt(
+      "Fecha (opcional):",
+      ""
+    );
 
 
-  if (
-    !student ||
-    !reason
-  ) {
+  addSanction(
+    student.trim(),
+    team.trim(),
+    reason.trim(),
+    date ? date.trim() : null
+  );
+
+}
+
+
+async function addSanction(
+  student,
+  team,
+  reason,
+  date
+) {
+
+  if (!currentSession) {
+    return;
+  }
+
+
+  if (!student || !reason) {
 
     alert(
       "Completa el nombre y la razón."
@@ -1889,37 +1704,21 @@ async function addSanction() {
   const result =
     await db
       .from("sanctions")
-      .insert([
-        {
-          student:
-            student,
-
-          team:
-            team || null,
-
-          reason:
-            reason,
-
-          date:
-            date || null
-        }
-      ]);
+      .insert([{
+        student,
+        team: team || null,
+        reason,
+        date: date || null
+      }]);
 
 
   if (result.error) {
 
-    alert(
-      result.error.message
-    );
+    alert(result.error.message);
 
     return;
 
   }
-
-
-  closeModal(
-    "sanction-modal"
-  );
 
 
   await loadSanctions();
@@ -1934,9 +1733,7 @@ async function addSanction() {
 async function editSanction(id) {
 
   if (!currentSession) {
-
     return;
-
   }
 
 
@@ -1950,9 +1747,7 @@ async function editSanction(id) {
 
   if (result.error) {
 
-    alert(
-      result.error.message
-    );
+    alert(result.error.message);
 
     return;
 
@@ -1963,184 +1758,79 @@ async function editSanction(id) {
     result.data;
 
 
-  editingSanctionId =
-    id;
-
-
-  const studentInput =
-    document.getElementById(
-      "sanction-student"
-    );
-
-
-  const teamInput =
-    document.getElementById(
-      "sanction-team"
-    );
-
-
-  const reasonInput =
-    document.getElementById(
-      "sanction-reason"
-    );
-
-
-  const dateInput =
-    document.getElementById(
-      "sanction-date"
-    );
-
-
-  if (studentInput) {
-
-    studentInput.value =
+  const student =
+    prompt(
+      "Nombre del estudiante:",
       sanction.student ||
       sanction.player ||
       sanction.name ||
-      "";
-
-  }
-
-
-  if (teamInput) {
-
-    teamInput.value =
-      sanction.team ||
-      sanction.grade ||
-      "";
-
-  }
-
-
-  if (reasonInput) {
-
-    reasonInput.value =
-      sanction.reason ||
-      sanction.description ||
-      "";
-
-  }
-
-
-  if (dateInput) {
-
-    dateInput.value =
-      sanction.date ||
-      "";
-
-  }
-
-
-  const modal =
-    document.getElementById(
-      "sanction-modal"
+      ""
     );
 
 
-  if (modal) {
-
-    modal.style.display =
-      "flex";
-
-  }
-
-}
-
-
-// ============================================================
-// GUARDAR SANCIÓN
-// ============================================================
-
-async function saveSanction() {
-
-  if (
-    !currentSession ||
-    !editingSanctionId
-  ) {
-
+  if (student === null) {
     return;
-
   }
-
-
-  const student =
-    document.getElementById(
-      "sanction-student"
-    )?.value.trim();
 
 
   const team =
-    document.getElementById(
-      "sanction-team"
-    )?.value.trim();
+    prompt(
+      "Grado / equipo:",
+      sanction.team ||
+      sanction.grade ||
+      ""
+    );
+
+
+  if (team === null) {
+    return;
+  }
 
 
   const reason =
-    document.getElementById(
-      "sanction-reason"
-    )?.value.trim();
+    prompt(
+      "Razón:",
+      sanction.reason ||
+      sanction.description ||
+      ""
+    );
+
+
+  if (reason === null) {
+    return;
+  }
 
 
   const date =
-    document.getElementById(
-      "sanction-date"
-    )?.value;
-
-
-  if (
-    !student ||
-    !reason
-  ) {
-
-    alert(
-      "Completa el nombre y la razón."
+    prompt(
+      "Fecha:",
+      sanction.date || ""
     );
 
-    return;
 
-  }
-
-
-  const result =
+  const updateResult =
     await db
       .from("sanctions")
       .update({
-        student:
-          student,
-
-        team:
-          team || null,
-
-        reason:
-          reason,
-
-        date:
-          date || null
+        student: student.trim(),
+        team: team.trim() || null,
+        reason: reason.trim(),
+        date: date
+          ? date.trim()
+          : null
       })
-      .eq(
-        "id",
-        editingSanctionId
-      );
+      .eq("id", id);
 
 
-  if (result.error) {
+  if (updateResult.error) {
 
     alert(
-      result.error.message
+      updateResult.error.message
     );
 
     return;
 
   }
-
-
-  editingSanctionId =
-    null;
-
-
-  closeModal(
-    "sanction-modal"
-  );
 
 
   await loadSanctions();
@@ -2155,9 +1845,7 @@ async function saveSanction() {
 async function deleteSanction(id) {
 
   if (!currentSession) {
-
     return;
-
   }
 
 
@@ -2168,9 +1856,7 @@ async function deleteSanction(id) {
 
 
   if (!confirmed) {
-
     return;
-
   }
 
 
@@ -2178,17 +1864,12 @@ async function deleteSanction(id) {
     await db
       .from("sanctions")
       .delete()
-      .eq(
-        "id",
-        id
-      );
+      .eq("id", id);
 
 
   if (result.error) {
 
-    alert(
-      result.error.message
-    );
+    alert(result.error.message);
 
     return;
 
@@ -2231,64 +1912,44 @@ async function loadScorers() {
 }
 
 
-function renderScorers(
-  scorers
-) {
+function renderScorers(scorers) {
 
   const menContainer =
-    document.getElementById(
-      "men-scorers"
-    ) ||
-    document.getElementById(
-      "scorers-men"
-    );
+    document.getElementById("menScorers");
 
 
   const womenContainer =
-    document.getElementById(
-      "women-scorers"
-    ) ||
-    document.getElementById(
-      "scorers-women"
-    );
+    document.getElementById("womenScorers");
 
 
   const men =
-    scorers.filter(
-      function (scorer) {
+    scorers.filter(scorer => {
 
-        return (
-          scorer.gender === "M" ||
-          scorer.gender === "H" ||
-          isMenTeam(
-            scorer.team
-          )
-        );
+      return (
+        scorer.gender === "M" ||
+        scorer.gender === "H" ||
+        isMenTeam(scorer.team)
+      );
 
-      }
-    );
+    });
 
 
   const women =
-    scorers.filter(
-      function (scorer) {
+    scorers.filter(scorer => {
 
-        return (
-          scorer.gender === "F" ||
-          scorer.gender === "W" ||
-          isWomenTeam(
-            scorer.team
-          )
-        );
+      return (
+        scorer.gender === "F" ||
+        scorer.gender === "W" ||
+        isWomenTeam(scorer.team)
+      );
 
-      }
-    );
+    });
 
 
   if (menContainer) {
 
     menContainer.innerHTML =
-      scorerTableHTML(men);
+      scorerRowsHTML(men);
 
   }
 
@@ -2296,7 +1957,7 @@ function renderScorers(
   if (womenContainer) {
 
     womenContainer.innerHTML =
-      scorerTableHTML(women);
+      scorerRowsHTML(women);
 
   }
 
@@ -2304,162 +1965,119 @@ function renderScorers(
 
 
 // ============================================================
-// TABLA GOLEADORES
+// FILAS GOLEADORES
 // ============================================================
 
-function scorerTableHTML(
-  scorers
-) {
+function scorerRowsHTML(scorers) {
 
   const sorted =
-    [...scorers].sort(
-      function (a, b) {
+    [...scorers].sort((a, b) => {
 
-        const goalsA =
-          Number(
-            a.goals ??
-            a.goal_count ??
-            0
-          );
-
-
-        const goalsB =
-          Number(
-            b.goals ??
-            b.goal_count ??
-            0
-          );
-
-
-        return (
-          goalsB -
-          goalsA
+      const goalsA =
+        Number(
+          a.goals ??
+          a.goal_count ??
+          0
         );
 
-      }
-    );
+
+      const goalsB =
+        Number(
+          b.goals ??
+          b.goal_count ??
+          0
+        );
+
+
+      return goalsB - goalsA;
+
+    });
 
 
   if (!sorted.length) {
 
     return `
-      <div class="empty-state">
-        No hay goleadores registrados.
-      </div>
+      <tr>
+        <td colspan="5">
+          No hay goleadores registrados.
+        </td>
+      </tr>
     `;
 
   }
 
 
-  return `
-    <div class="scorer-table">
+  return sorted
+    .map((scorer, index) => {
 
-      <div class="scorer-row scorer-header">
-
-        <span>#</span>
-
-        <span>Jugador</span>
-
-        <span>Equipo</span>
-
-        <span>Goles</span>
-
-        ${
-          currentSession
-            ? "<span>Acciones</span>"
-            : ""
-        }
-
-      </div>
+      const player =
+        scorer.player ||
+        scorer.name ||
+        "";
 
 
-      ${sorted
-        .map(
-          function (
-            scorer,
-            index
-          ) {
-
-            const player =
-              scorer.player ||
-              scorer.name ||
-              "";
+      const team =
+        normalizeTeam(
+          scorer.team || ""
+        );
 
 
-            const team =
-              normalizeTeam(
-                scorer.team ||
-                ""
-              );
+      const goals =
+        scorer.goals ??
+        scorer.goal_count ??
+        0;
 
 
-            const goals =
-              scorer.goals ??
-              scorer.goal_count ??
-              0;
+      const actions =
+        currentSession
+          ? `
+            <td>
+
+              <button
+                type="button"
+                class="admin-button"
+                onclick="editScorer(${Number(scorer.id)})">
+                ✏️
+              </button>
+
+              <button
+                type="button"
+                class="admin-button danger"
+                onclick="deleteScorer(${Number(scorer.id)})">
+                🗑️
+              </button>
+
+            </td>
+          `
+          : "<td></td>";
 
 
-            let actions =
-              "";
+      return `
+        <tr>
 
+          <td>
+            ${index + 1}
+          </td>
 
-            if (currentSession) {
+          <td>
+            ${escapeHTML(player)}
+          </td>
 
-              actions = `
-                <span>
+          <td>
+            ${escapeHTML(team)}
+          </td>
 
-                  <button
-                    class="admin-button"
-                    onclick="editScorer(${scorer.id})">
-                    ✏️
-                  </button>
+          <td>
+            ${goals}
+          </td>
 
-                  <button
-                    class="admin-button danger"
-                    onclick="deleteScorer(${scorer.id})">
-                    🗑️
-                  </button>
+          ${actions}
 
-                </span>
-              `;
+        </tr>
+      `;
 
-            }
-
-
-            return `
-              <div class="scorer-row">
-
-                <span>
-                  ${index + 1}
-                </span>
-
-                <strong>
-                  ${escapeHTML(
-                    player
-                  )}
-                </strong>
-
-                <span>
-                  ${escapeHTML(
-                    team
-                  )}
-                </span>
-
-                <strong>
-                  ${goals}
-                </strong>
-
-                ${actions}
-
-              </div>
-            `;
-
-          }
-        )
-        .join("")}
-
-    </div>
-  `;
+    })
+    .join("");
 
 }
 
@@ -2471,72 +2089,73 @@ function scorerTableHTML(
 function openScorerModal() {
 
   if (!currentSession) {
-
     return;
-
-  }
-
-
-  editingScorerId =
-    null;
-
-
-  const modal =
-    document.getElementById(
-      "scorer-modal"
-    );
-
-
-  if (modal) {
-
-    modal.style.display =
-      "flex";
-
-  }
-
-}
-
-
-async function addScorer() {
-
-  if (!currentSession) {
-
-    return;
-
   }
 
 
   const player =
-    document.getElementById(
-      "scorer-player"
-    )?.value.trim();
+    prompt("Nombre del jugador:");
+
+  if (player === null) {
+    return;
+  }
 
 
   const team =
-    document.getElementById(
-      "scorer-team"
-    )?.value.trim();
+    prompt("Equipo:");
+
+  if (team === null) {
+    return;
+  }
 
 
   const gender =
-    document.getElementById(
-      "scorer-gender"
-    )?.value;
-
-
-  const goals =
-    Number(
-      document.getElementById(
-        "scorer-goals"
-      )?.value ||
-      0
+    prompt(
+      "Género: escribe M para hombres o F para mujeres",
+      "M"
     );
 
 
-  if (
-    !player ||
-    !team
-  ) {
+  if (gender === null) {
+    return;
+  }
+
+
+  const goals =
+    prompt(
+      "Cantidad de goles:",
+      "0"
+    );
+
+
+  if (goals === null) {
+    return;
+  }
+
+
+  addScorer(
+    player.trim(),
+    normalizeTeam(team.trim()),
+    gender.trim().toUpperCase(),
+    Number(goals)
+  );
+
+}
+
+
+async function addScorer(
+  player,
+  team,
+  gender,
+  goals
+) {
+
+  if (!currentSession) {
+    return;
+  }
+
+
+  if (!player || !team) {
 
     alert(
       "Completa el jugador y el equipo."
@@ -2547,32 +2166,13 @@ async function addScorer() {
   }
 
 
-  const result =
-    await db
-      .from("scorers")
-      .insert([
-        {
-          player:
-            player,
-
-          team:
-            normalizeTeam(
-              team
-            ),
-
-          gender:
-            gender || null,
-
-          goals:
-            goals
-        }
-      ]);
-
-
-  if (result.error) {
+  if (
+    !Number.isFinite(goals) ||
+    goals < 0
+  ) {
 
     alert(
-      result.error.message
+      "La cantidad de goles no es válida."
     );
 
     return;
@@ -2580,9 +2180,24 @@ async function addScorer() {
   }
 
 
-  closeModal(
-    "scorer-modal"
-  );
+  const result =
+    await db
+      .from("scorers")
+      .insert([{
+        player,
+        team,
+        gender,
+        goals
+      }]);
+
+
+  if (result.error) {
+
+    alert(result.error.message);
+
+    return;
+
+  }
 
 
   await loadScorers();
@@ -2597,9 +2212,7 @@ async function addScorer() {
 async function editScorer(id) {
 
   if (!currentSession) {
-
     return;
-
   }
 
 
@@ -2613,9 +2226,7 @@ async function editScorer(id) {
 
   if (result.error) {
 
-    alert(
-      result.error.message
-    );
+    alert(result.error.message);
 
     return;
 
@@ -2626,140 +2237,73 @@ async function editScorer(id) {
     result.data;
 
 
-  editingScorerId =
-    id;
-
-
-  const playerInput =
-    document.getElementById(
-      "scorer-player"
-    );
-
-
-  const teamInput =
-    document.getElementById(
-      "scorer-team"
-    );
-
-
-  const genderInput =
-    document.getElementById(
-      "scorer-gender"
-    );
-
-
-  const goalsInput =
-    document.getElementById(
-      "scorer-goals"
-    );
-
-
-  if (playerInput) {
-
-    playerInput.value =
+  const player =
+    prompt(
+      "Nombre del jugador:",
       scorer.player ||
       scorer.name ||
-      "";
-
-  }
-
-
-  if (teamInput) {
-
-    teamInput.value =
-      normalizeTeam(
-        scorer.team ||
-        ""
-      );
-
-  }
-
-
-  if (genderInput) {
-
-    genderInput.value =
-      scorer.gender ||
-      "";
-
-  }
-
-
-  if (goalsInput) {
-
-    goalsInput.value =
-      scorer.goals ??
-      scorer.goal_count ??
-      0;
-
-  }
-
-
-  const modal =
-    document.getElementById(
-      "scorer-modal"
+      ""
     );
 
 
-  if (modal) {
-
-    modal.style.display =
-      "flex";
-
-  }
-
-}
-
-
-// ============================================================
-// GUARDAR GOLEADOR
-// ============================================================
-
-async function saveScorer() {
-
-  if (
-    !currentSession ||
-    !editingScorerId
-  ) {
-
+  if (player === null) {
     return;
-
   }
-
-
-  const player =
-    document.getElementById(
-      "scorer-player"
-    )?.value.trim();
 
 
   const team =
-    document.getElementById(
-      "scorer-team"
-    )?.value.trim();
+    prompt(
+      "Equipo:",
+      normalizeTeam(
+        scorer.team || ""
+      )
+    );
+
+
+  if (team === null) {
+    return;
+  }
 
 
   const gender =
-    document.getElementById(
-      "scorer-gender"
-    )?.value;
+    prompt(
+      "Género: M o F",
+      scorer.gender || "M"
+    );
+
+
+  if (gender === null) {
+    return;
+  }
 
 
   const goals =
-    Number(
-      document.getElementById(
-        "scorer-goals"
-      )?.value ||
-      0
+    prompt(
+      "Cantidad de goles:",
+      String(
+        scorer.goals ??
+        scorer.goal_count ??
+        0
+      )
     );
+
+
+  if (goals === null) {
+    return;
+  }
+
+
+  const numericGoals =
+    Number(goals);
 
 
   if (
-    !player ||
-    !team
+    !Number.isFinite(numericGoals) ||
+    numericGoals < 0
   ) {
 
     alert(
-      "Completa el jugador y el equipo."
+      "La cantidad de goles no es válida."
     );
 
     return;
@@ -2767,48 +2311,27 @@ async function saveScorer() {
   }
 
 
-  const result =
+  const updateResult =
     await db
       .from("scorers")
       .update({
-        player:
-          player,
-
-        team:
-          normalizeTeam(
-            team
-          ),
-
-        gender:
-          gender || null,
-
-        goals:
-          goals
+        player: player.trim(),
+        team: normalizeTeam(team.trim()),
+        gender: gender.trim().toUpperCase(),
+        goals: numericGoals
       })
-      .eq(
-        "id",
-        editingScorerId
-      );
+      .eq("id", id);
 
 
-  if (result.error) {
+  if (updateResult.error) {
 
     alert(
-      result.error.message
+      updateResult.error.message
     );
 
     return;
 
   }
-
-
-  editingScorerId =
-    null;
-
-
-  closeModal(
-    "scorer-modal"
-  );
 
 
   await loadScorers();
@@ -2823,9 +2346,7 @@ async function saveScorer() {
 async function deleteScorer(id) {
 
   if (!currentSession) {
-
     return;
-
   }
 
 
@@ -2836,9 +2357,7 @@ async function deleteScorer(id) {
 
 
   if (!confirmed) {
-
     return;
-
   }
 
 
@@ -2846,17 +2365,12 @@ async function deleteScorer(id) {
     await db
       .from("scorers")
       .delete()
-      .eq(
-        "id",
-        id
-      );
+      .eq("id", id);
 
 
   if (result.error) {
 
-    alert(
-      result.error.message
-    );
+    alert(result.error.message);
 
     return;
 
@@ -2903,23 +2417,19 @@ async function loadCleanliness() {
 // RENDER GRADO
 // ============================================================
 
-function renderCleanliness(
-  rows
-) {
+function renderCleanliness(rows) {
 
   const container =
     document.getElementById(
-      "cleanliness-list"
-    ) ||
-    document.getElementById(
-      "cleanliness"
-    ) ||
-    document.getElementById(
-      "grado-list"
+      "cleanlinessTable"
     );
 
 
   if (!container) {
+
+    console.error(
+      "No existe #cleanlinessTable."
+    );
 
     return;
 
@@ -2929,9 +2439,11 @@ function renderCleanliness(
   if (!rows.length) {
 
     container.innerHTML = `
-      <div class="empty-state">
-        No hay datos de grado registrados.
-      </div>
+      <tr>
+        <td colspan="5">
+          No hay datos de grado registrados.
+        </td>
+      </tr>
     `;
 
     return;
@@ -2940,99 +2452,99 @@ function renderCleanliness(
 
 
   const sorted =
-    [...rows].sort(
-      function (a, b) {
+    [...rows].sort((a, b) => {
 
-        const scoreA =
-          Number(
-            a.score ??
-            a.points ??
-            0
-          );
-
-
-        const scoreB =
-          Number(
-            b.score ??
-            b.points ??
-            0
-          );
-
-
-        return (
-          scoreB -
-          scoreA
+      const scoreA =
+        Number(
+          a.score ??
+          a.points ??
+          0
         );
 
-      }
-    );
+
+      const scoreB =
+        Number(
+          b.score ??
+          b.points ??
+          0
+        );
+
+
+      return scoreB - scoreA;
+
+    });
 
 
   container.innerHTML =
     sorted
-      .map(
-        function (
-          row,
-          index
-        ) {
+      .map((row, index) => {
 
-          const name =
-            row.grade ||
-            row.name ||
-            row.team ||
-            "";
+        const name =
+          row.grade ||
+          row.name ||
+          row.team ||
+          "";
 
 
-          const score =
-            row.score ??
-            row.points ??
-            0;
+        const score =
+          row.score ??
+          row.points ??
+          0;
 
 
-          let action =
-            "";
+        const reason =
+          row.reason ||
+          row.description ||
+          row.comment ||
+          "";
 
 
-          if (currentSession) {
-
-            action = `
+        const action =
+          currentSession
+            ? `
               <button
                 type="button"
                 class="admin-button"
-                onclick="window.editTeamPoints(${Number(row.id)})">
+                onclick="editTeamPoints(${Number(row.id)})">
                 ✏️
               </button>
-            `;
+            `
+            : "";
 
-          }
 
+        return `
+          <tr>
 
-          return `
-            <div class="cleanliness-row">
+            <td>
+              ${index + 1}
+            </td>
 
-              <span>
-                ${index + 1}
-              </span>
+            <td>
+              ${escapeHTML(
+                String(name)
+              )}
+            </td>
 
-              <strong>
-                ${escapeHTML(
-                  String(name)
-                )}
-              </strong>
+            <td>
+              ${escapeHTML(
+                String(score)
+              )}
+            </td>
 
-              <span>
-                ${escapeHTML(
-                  String(score)
-                )}
-              </span>
+            <td>
+              ${escapeHTML(
+                String(reason)
+              )}
+            </td>
 
+            <td>
               ${action}
+            </td>
 
-            </div>
-          `;
+          </tr>
+        `;
 
-        }
-      )
+      })
       .join("");
 
 }
@@ -3042,9 +2554,7 @@ function renderCleanliness(
 // EDITAR PUNTOS DE GRADO
 // ============================================================
 
-async function editTeamPoints(
-  id
-) {
+async function editTeamPoints(id) {
 
   if (!currentSession) {
 
@@ -3076,10 +2586,7 @@ async function editTeamPoints(
     await db
       .from("cleanliness_scores")
       .select("*")
-      .eq(
-        "id",
-        numericId
-      )
+      .eq("id", numericId)
       .single();
 
 
@@ -3116,24 +2623,16 @@ async function editTeamPoints(
     );
 
 
-  if (
-    newPoints === null
-  ) {
-
+  if (newPoints === null) {
     return;
-
   }
 
 
   const points =
-    Number(
-      newPoints
-    );
+    Number(newPoints);
 
 
-  if (
-    !Number.isFinite(points)
-  ) {
+  if (!Number.isFinite(points)) {
 
     alert(
       "Los puntos deben ser un número."
@@ -3174,7 +2673,7 @@ async function editTeamPoints(
   else {
 
     alert(
-      "No se encontró una columna score o points en cleanliness_scores."
+      "No se encontró score ni points."
     );
 
     return;
@@ -3185,13 +2684,8 @@ async function editTeamPoints(
   const updateResult =
     await db
       .from("cleanliness_scores")
-      .update(
-        updateData
-      )
-      .eq(
-        "id",
-        numericId
-      );
+      .update(updateData)
+      .eq("id", numericId);
 
 
   if (updateResult.error) {
@@ -3216,102 +2710,19 @@ async function editTeamPoints(
 
 
 // ============================================================
-// EDITAR GRADO — COMPATIBILIDAD
+// COMPATIBILIDAD
 // ============================================================
 
-async function editCleanliness(
-  id
-) {
+async function editCleanliness(id) {
 
-  return editTeamPoints(
-    id
-  );
+  return editTeamPoints(id);
 
 }
 
 
-// ============================================================
-// GUARDAR GRADO
-// ============================================================
-
 async function saveCleanliness() {
 
-  if (
-    !currentSession ||
-    !editingCleanlinessId
-  ) {
-
-    return;
-
-  }
-
-
-  const scoreInput =
-    document.getElementById(
-      "cleanliness-score"
-    );
-
-
-  if (!scoreInput) {
-
-    return;
-
-  }
-
-
-  const score =
-    Number(
-      scoreInput.value
-    );
-
-
-  if (
-    !Number.isFinite(score)
-  ) {
-
-    alert(
-      "El puntaje no es válido."
-    );
-
-    return;
-
-  }
-
-
-  const result =
-    await db
-      .from("cleanliness_scores")
-      .update({
-        score:
-          score
-      })
-      .eq(
-        "id",
-        editingCleanlinessId
-      );
-
-
-  if (result.error) {
-
-    alert(
-      result.error.message
-    );
-
-    return;
-
-  }
-
-
-  editingCleanlinessId =
-    null;
-
-
-  closeModal(
-    "cleanliness-modal"
-  );
-
-
-  await loadCleanliness();
+  return;
 
 }
 
@@ -3320,14 +2731,10 @@ async function saveCleanliness() {
 // CERRAR MODAL
 // ============================================================
 
-function closeModal(
-  id
-) {
+function closeModal(id) {
 
   const modal =
-    document.getElementById(
-      id
-    );
+    document.getElementById(id);
 
 
   if (modal) {
@@ -3344,38 +2751,20 @@ function closeModal(
 // SEGURIDAD HTML
 // ============================================================
 
-function escapeHTML(
-  value
-) {
+function escapeHTML(value) {
 
   return String(value)
-    .replace(
-      /&/g,
-      "&amp;"
-    )
-    .replace(
-      /</g,
-      "&lt;"
-    )
-    .replace(
-      />/g,
-      "&gt;"
-    )
-    .replace(
-      /"/g,
-      "&quot;"
-    )
-    .replace(
-      /'/g,
-      "&#039;"
-    );
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
 
 }
 
 
 // ============================================================
 // FUNCIONES GLOBALES
-// IMPORTANTE: DEBEN ESTAR AL FINAL
 // ============================================================
 
 window.refreshAll =
@@ -3442,6 +2831,11 @@ window.closeModal =
 
 console.log(
   "Interaulas 2026 app.js cargado correctamente."
+);
+
+console.log(
+  "refreshAll:",
+  typeof window.refreshAll
 );
 
 console.log(
