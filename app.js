@@ -360,6 +360,7 @@ const SCHEDULE = [
 // ============================================================
 
 let currentSession = null;
+
 let matchesData = [];
 let scorersData = [];
 let sanctionsData = [];
@@ -367,8 +368,6 @@ let cleanlinessData = [];
 let pointAdjustments = [];
 
 let selectedMatchId = null;
-let selectedScorerId = null;
-let selectedSanctionId = null;
 
 // ============================================================
 // HELPERS
@@ -413,8 +412,12 @@ function formatDateShort(dateString) {
 }
 
 function isMen(team) {
-  return MEN_A.includes(normalizeTeam(team)) ||
-         MEN_B.includes(normalizeTeam(team));
+  const normalized = normalizeTeam(team);
+
+  return (
+    MEN_A.includes(normalized) ||
+    MEN_B.includes(normalized)
+  );
 }
 
 function isWomen(team) {
@@ -423,14 +426,6 @@ function isWomen(team) {
 
 function getGenderLabel(gender) {
   return gender === "M" ? "Hombres" : "Mujeres";
-}
-
-function getTeamGroup(team) {
-  const normalized = normalizeTeam(team);
-
-  if (MEN_A.includes(normalized)) return "A";
-  if (MEN_B.includes(normalized)) return "B";
-  return "Mujeres";
 }
 
 // ============================================================
@@ -459,7 +454,7 @@ window.openModal = openModal;
 window.closeModal = closeModal;
 
 // ============================================================
-// AUTH
+// LOGIN
 // ============================================================
 
 async function login() {
@@ -469,7 +464,11 @@ async function login() {
   const message = $("authMessage");
 
   if (!email || !password) {
-    if (message) message.textContent = "Escribe tu correo y contraseña.";
+    if (message) {
+      message.textContent =
+        "Escribe tu correo y contraseña.";
+    }
+
     return;
   }
 
@@ -477,10 +476,11 @@ async function login() {
     message.textContent = "Iniciando sesión...";
   }
 
-  const { data, error } = await db.auth.signInWithPassword({
-    email,
-    password
-  });
+  const { data, error } =
+    await db.auth.signInWithPassword({
+      email,
+      password
+    });
 
   if (error) {
     console.error("LOGIN ERROR:", error);
@@ -499,6 +499,7 @@ async function login() {
   }
 
   closeModal("authModal");
+
   updateAuthUI();
 
   await refreshAll();
@@ -515,7 +516,8 @@ async function logout() {
 }
 
 async function checkSession() {
-  const { data, error } = await db.auth.getSession();
+  const { data, error } =
+    await db.auth.getSession();
 
   if (error) {
     console.error("SESSION ERROR:", error);
@@ -533,6 +535,7 @@ function updateAuthUI() {
   const addSanctionBtn = $("addSanctionBtn");
 
   if (currentSession) {
+
     if (loginBtn) {
       loginBtn.textContent = "Cerrar sesión";
       loginBtn.onclick = logout;
@@ -547,10 +550,13 @@ function updateAuthUI() {
       addSanctionBtn.classList.remove("hidden");
       addSanctionBtn.style.display = "";
     }
+
   } else {
+
     if (loginBtn) {
       loginBtn.textContent = "Iniciar sesión";
-      loginBtn.onclick = () => openModal("authModal");
+      loginBtn.onclick = () =>
+        openModal("authModal");
     }
 
     if (addScorerBtn) {
@@ -566,11 +572,14 @@ function updateAuthUI() {
 }
 
 // ============================================================
-// CARGAR TODOS LOS DATOS
+// CARGAR TODO
 // ============================================================
 
 async function refreshAll() {
-  console.log("INTERAULAS: actualizando datos...");
+
+  console.log(
+    "INTERAULAS: actualizando datos..."
+  );
 
   await Promise.all([
     loadMatches(),
@@ -589,7 +598,9 @@ async function refreshAll() {
 
   updateAuthUI();
 
-  console.log("INTERAULAS: datos cargados.");
+  console.log(
+    "INTERAULAS: datos cargados."
+  );
 }
 
 // ============================================================
@@ -597,58 +608,97 @@ async function refreshAll() {
 // ============================================================
 
 async function loadMatches() {
-  const { data, error } = await db
-    .from("matches")
-    .select("*");
+
+  const { data, error } =
+    await db
+      .from("matches")
+      .select("*");
 
   if (error) {
-    console.error("Error cargando matches:", error);
+    console.error(
+      "Error cargando matches:",
+      error
+    );
+
     matchesData = [];
+
     return;
   }
 
   matchesData = data || [];
 
-  // Normalizamos solo para mostrar.
   matchesData = matchesData.map(match => ({
     ...match,
-    home_team: normalizeTeam(match.home_team),
-    away_team: normalizeTeam(match.away_team)
+
+    home_team:
+      normalizeTeam(match.home_team),
+
+    away_team:
+      normalizeTeam(match.away_team)
   }));
 }
 
 function getMatchForDay(day) {
-  return matchesData.find(match => Number(match.day) === Number(day));
+
+  return matchesData.find(
+    match =>
+      Number(match.day) === Number(day)
+  );
 }
 
 function renderNextMatch() {
+
   const container = $("nextMatch");
 
   if (!container) return;
 
   const today = new Date();
-  today.setHours(0, 0, 0, 0);
 
-  const upcoming = SCHEDULE
-    .filter(game => {
-      const d = new Date(`${game.date}T12:00:00`);
-      return d >= today;
-    })
-    .sort((a, b) => a.date.localeCompare(b.date));
+  today.setHours(
+    0,
+    0,
+    0,
+    0
+  );
+
+  const upcoming =
+    SCHEDULE
+      .filter(game => {
+
+        const d =
+          new Date(`${game.date}T12:00:00`);
+
+        return d >= today;
+      })
+      .sort((a, b) =>
+        a.date.localeCompare(b.date)
+      );
 
   if (!upcoming.length) {
+
     container.innerHTML = `
       <div>
-        <div class="eyebrow">INTERAULAS 2026</div>
-        <h2>Temporada finalizada</h2>
-        <p>Todos los partidos han sido jugados.</p>
+        <div class="eyebrow">
+          INTERAULAS 2026
+        </div>
+
+        <h2>
+          Temporada finalizada
+        </h2>
+
+        <p>
+          Todos los partidos han sido jugados.
+        </p>
       </div>
     `;
+
     return;
   }
 
   const next = upcoming[0];
-  const saved = getMatchForDay(next.day);
+
+  const saved =
+    getMatchForDay(next.day);
 
   let scoreText = "VS";
 
@@ -659,19 +709,33 @@ function renderNextMatch() {
     saved.away_score !== null &&
     saved.away_score !== undefined
   ) {
-    scoreText = `${saved.home_score} - ${saved.away_score}`;
+
+    scoreText =
+      `${saved.home_score} - ${saved.away_score}`;
   }
 
   container.innerHTML = `
     <div>
-      <div class="eyebrow">PRÓXIMO PARTIDO · ${getGenderLabel(next.gender)}</div>
-      <h2>${escapeHtml(next.home)} <span>${scoreText}</span> ${escapeHtml(next.away)}</h2>
-      <p>${escapeHtml(formatDate(next.date))}</p>
+      <div class="eyebrow">
+        PRÓXIMO PARTIDO ·
+        ${getGenderLabel(next.gender)}
+      </div>
+
+      <h2>
+        ${escapeHtml(next.home)}
+        <span>${scoreText}</span>
+        ${escapeHtml(next.away)}
+      </h2>
+
+      <p>
+        ${escapeHtml(formatDate(next.date))}
+      </p>
     </div>
   `;
 }
 
 function renderMatches() {
+
   const container = $("matches");
 
   if (!container) return;
@@ -679,7 +743,9 @@ function renderMatches() {
   let html = "";
 
   for (const game of SCHEDULE) {
-    const saved = getMatchForDay(game.day);
+
+    const saved =
+      getMatchForDay(game.day);
 
     let score = "—";
 
@@ -690,25 +756,38 @@ function renderMatches() {
       saved.away_score !== null &&
       saved.away_score !== undefined
     ) {
-      score = `${saved.home_score} - ${saved.away_score}`;
+
+      score =
+        `${saved.home_score} - ${saved.away_score}`;
     }
 
     html += `
       <div class="matchday">
+
         <h3>
-          Jornada ${game.day} · ${formatDate(game.date)}
+          Jornada ${game.day}
+          · ${formatDate(game.date)}
           · ${getGenderLabel(game.gender)}
         </h3>
 
         <div class="match">
+
           <div>
-            <strong>${formatDateShort(game.date)}</strong>
+            <strong>
+              ${formatDateShort(game.date)}
+            </strong>
           </div>
 
           <div>
-            <strong>${escapeHtml(game.home)}</strong>
+            <strong>
+              ${escapeHtml(game.home)}
+            </strong>
+
             vs
-            <strong>${escapeHtml(game.away)}</strong>
+
+            <strong>
+              ${escapeHtml(game.away)}
+            </strong>
           </div>
 
           <div class="score">
@@ -718,11 +797,20 @@ function renderMatches() {
           <div class="edit">
             ${
               currentSession
-                ? `<button class="outline" onclick="editMatch(${game.day})">Editar</button>`
+                ? `
+                  <button
+                    class="outline"
+                    onclick="editMatch(${game.day})"
+                  >
+                    Editar
+                  </button>
+                `
                 : ""
             }
           </div>
+
         </div>
+
       </div>
     `;
   }
@@ -731,18 +819,28 @@ function renderMatches() {
 }
 
 async function editMatch(day) {
+
   if (!currentSession) {
-    alert("Debes iniciar sesión como administrador.");
+
+    alert(
+      "Debes iniciar sesión como administrador."
+    );
+
     return;
   }
 
-  const game = SCHEDULE.find(g => Number(g.day) === Number(day));
+  const game =
+    SCHEDULE.find(
+      g => Number(g.day) === Number(day)
+    );
 
   if (!game) return;
 
-  const saved = getMatchForDay(day);
+  const saved =
+    getMatchForDay(day);
 
-  selectedMatchId = saved?.id || null;
+  selectedMatchId =
+    saved?.id || null;
 
   $("editMatchTitle").textContent =
     `${game.home} vs ${game.away}`;
@@ -753,33 +851,58 @@ async function editMatch(day) {
   $("awayScore").value =
     saved?.away_score ?? "";
 
-  $("editModal").dataset.day = String(day);
+  $("editModal").dataset.day =
+    String(day);
 
   openModal("editModal");
 }
 
 async function saveMatch() {
+
   if (!currentSession) {
-    alert("Debes iniciar sesión como administrador.");
+
+    alert(
+      "Debes iniciar sesión como administrador."
+    );
+
     return;
   }
 
-  const day = Number($("editModal")?.dataset.day);
+  const day =
+    Number(
+      $("editModal")?.dataset.day
+    );
 
-  const game = SCHEDULE.find(g => Number(g.day) === day);
+  const game =
+    SCHEDULE.find(
+      g => Number(g.day) === day
+    );
 
   if (!game) return;
 
-  const homeScoreRaw = $("homeScore")?.value;
-  const awayScoreRaw = $("awayScore")?.value;
+  const homeScoreRaw =
+    $("homeScore")?.value;
 
-  if (homeScoreRaw === "" || awayScoreRaw === "") {
-    alert("Ingresa ambos marcadores.");
+  const awayScoreRaw =
+    $("awayScore")?.value;
+
+  if (
+    homeScoreRaw === "" ||
+    awayScoreRaw === ""
+  ) {
+
+    alert(
+      "Ingresa ambos marcadores."
+    );
+
     return;
   }
 
-  const homeScore = Number(homeScoreRaw);
-  const awayScore = Number(awayScoreRaw);
+  const homeScore =
+    Number(homeScoreRaw);
+
+  const awayScore =
+    Number(awayScoreRaw);
 
   if (
     !Number.isInteger(homeScore) ||
@@ -787,42 +910,63 @@ async function saveMatch() {
     homeScore < 0 ||
     awayScore < 0
   ) {
-    alert("Los marcadores deben ser números enteros positivos.");
+
+    alert(
+      "Los marcadores deben ser números enteros positivos."
+    );
+
     return;
   }
 
   let error;
 
   if (selectedMatchId) {
-    const result = await db
-      .from("matches")
-      .update({
-        home_score: homeScore,
-        away_score: awayScore
-      })
-      .eq("id", selectedMatchId);
+
+    const result =
+      await db
+        .from("matches")
+        .update({
+          home_score: homeScore,
+          away_score: awayScore
+        })
+        .eq(
+          "id",
+          selectedMatchId
+        );
 
     error = result.error;
+
   } else {
-    const result = await db
-      .from("matches")
-      .insert({
-        day: game.day,
-        date: game.date,
-        gender: game.gender,
-        group_name: game.group,
-        home_team: game.home,
-        away_team: game.away,
-        home_score: homeScore,
-        away_score: awayScore
-      });
+
+    const result =
+      await db
+        .from("matches")
+        .insert({
+          day: game.day,
+          date: game.date,
+          gender: game.gender,
+          group_name: game.group,
+          home_team: game.home,
+          away_team: game.away,
+          home_score: homeScore,
+          away_score: awayScore
+        });
 
     error = result.error;
   }
 
   if (error) {
-    console.error("SAVE MATCH ERROR:", error);
-    alert("No se pudo guardar el partido:\n\n" + error.message);
+
+    console.error(
+      "SAVE MATCH ERROR:",
+      error
+    );
+
+    alert(
+      "No se pudo guardar el partido:\n\n" +
+      error.message
+    );
+
     return;
   }
 
@@ -835,17 +979,25 @@ window.editMatch = editMatch;
 window.saveMatch = saveMatch;
 
 // ============================================================
-// TABLAS DE POSICIONES
+// PUNTOS MANUALES
 // ============================================================
 
 async function loadPointAdjustments() {
-  const { data, error } = await db
-    .from("point_adjustments")
-    .select("*");
+
+  const { data, error } =
+    await db
+      .from("point_adjustments")
+      .select("*");
 
   if (error) {
-    console.error("Error cargando point_adjustments:", error);
+
+    console.error(
+      "Error cargando point_adjustments:",
+      error
+    );
+
     pointAdjustments = [];
+
     return;
   }
 
@@ -853,39 +1005,58 @@ async function loadPointAdjustments() {
 }
 
 function getManualPoints(team) {
-  const normalized = normalizeTeam(team);
 
-  const row = pointAdjustments.find(
-    item => normalizeTeam(item.team) === normalized
+  const normalized =
+    normalizeTeam(team);
+
+  const row =
+    pointAdjustments.find(
+      item =>
+        normalizeTeam(item.team) ===
+        normalized
+    );
+
+  return Number(
+    row?.points || 0
   );
-
-  return Number(row?.points || 0);
 }
 
 function calculateStandings(teams) {
+
   const table = {};
 
   for (const team of teams) {
+
     table[team] = {
       team,
+
       PJ: 0,
       PG: 0,
       PE: 0,
       PP: 0,
+
       GF: 0,
       GC: 0,
       DG: 0,
+
       PTS: 0,
-      manual: getManualPoints(team)
+
+      manual:
+        getManualPoints(team)
     };
   }
 
   for (const game of SCHEDULE) {
-    if (!teams.includes(game.home) || !teams.includes(game.away)) {
+
+    if (
+      !teams.includes(game.home) ||
+      !teams.includes(game.away)
+    ) {
       continue;
     }
 
-    const saved = getMatchForDay(game.day);
+    const saved =
+      getMatchForDay(game.day);
 
     if (!saved) continue;
 
@@ -898,11 +1069,17 @@ function calculateStandings(teams) {
       continue;
     }
 
-    const homeScore = Number(saved.home_score);
-    const awayScore = Number(saved.away_score);
+    const homeScore =
+      Number(saved.home_score);
 
-    const home = table[game.home];
-    const away = table[game.away];
+    const awayScore =
+      Number(saved.away_score);
+
+    const home =
+      table[game.home];
+
+    const away =
+      table[game.away];
 
     if (!home || !away) continue;
 
@@ -915,20 +1092,32 @@ function calculateStandings(teams) {
     away.GF += awayScore;
     away.GC += homeScore;
 
-    home.DG = home.GF - home.GC;
-    away.DG = away.GF - away.GC;
+    home.DG =
+      home.GF - home.GC;
+
+    away.DG =
+      away.GF - away.GC;
 
     if (homeScore > awayScore) {
+
       home.PG++;
+
       home.PTS += 3;
 
       away.PP++;
-    } else if (homeScore < awayScore) {
+
+    } else if (
+      homeScore < awayScore
+    ) {
+
       away.PG++;
+
       away.PTS += 3;
 
       home.PP++;
+
     } else {
+
       home.PE++;
       away.PE++;
 
@@ -937,35 +1126,64 @@ function calculateStandings(teams) {
     }
   }
 
-  for (const team of Object.values(table)) {
+  for (
+    const team of Object.values(table)
+  ) {
+
     team.PTS += team.manual;
   }
 
-  return Object.values(table).sort((a, b) => {
-    if (b.PTS !== a.PTS) return b.PTS - a.PTS;
-    if (b.DG !== a.DG) return b.DG - a.DG;
-    if (b.GF !== a.GF) return b.GF - a.GF;
+  return Object.values(table)
+    .sort((a, b) => {
 
-    return a.team.localeCompare(b.team);
-  });
+      if (b.PTS !== a.PTS)
+        return b.PTS - a.PTS;
+
+      if (b.DG !== a.DG)
+        return b.DG - a.DG;
+
+      if (b.GF !== a.GF)
+        return b.GF - a.GF;
+
+      return a.team.localeCompare(
+        b.team
+      );
+    });
 }
 
 function renderStandings() {
-  const menContainer = $("menTables");
-  const womenContainer = $("womenTable");
 
-  const menA = calculateStandings(MEN_A);
-  const menB = calculateStandings(MEN_B);
-  const women = calculateStandings(WOMEN);
+  const menContainer =
+    $("menTables");
+
+  const womenContainer =
+    $("womenTable");
+
+  const menA =
+    calculateStandings(MEN_A);
+
+  const menB =
+    calculateStandings(MEN_B);
+
+  const women =
+    calculateStandings(WOMEN);
 
   if (menContainer) {
+
     menContainer.innerHTML = `
+
       <div class="card">
+
         <h3>Grupo A</h3>
+
         <div class="table-wrap">
+
           <table>
+
             <thead>
+
               <tr>
+
                 <th>#</th>
                 <th>Equipo</th>
                 <th>PJ</th>
@@ -976,22 +1194,40 @@ function renderStandings() {
                 <th>GC</th>
                 <th>DG</th>
                 <th>PTS</th>
-                ${currentSession ? "<th>Admin</th>" : ""}
+
+                ${
+                  currentSession
+                    ? "<th>Admin</th>"
+                    : ""
+                }
+
               </tr>
+
             </thead>
+
             <tbody>
               ${renderStandingRows(menA)}
             </tbody>
+
           </table>
+
         </div>
+
       </div>
 
+
       <div class="card">
+
         <h3>Grupo B</h3>
+
         <div class="table-wrap">
+
           <table>
+
             <thead>
+
               <tr>
+
                 <th>#</th>
                 <th>Equipo</th>
                 <th>PJ</th>
@@ -1002,27 +1238,45 @@ function renderStandings() {
                 <th>GC</th>
                 <th>DG</th>
                 <th>PTS</th>
-                ${currentSession ? "<th>Admin</th>" : ""}
+
+                ${
+                  currentSession
+                    ? "<th>Admin</th>"
+                    : ""
+                }
+
               </tr>
+
             </thead>
+
             <tbody>
               ${renderStandingRows(menB)}
             </tbody>
+
           </table>
+
         </div>
+
       </div>
     `;
   }
 
   if (womenContainer) {
+
     womenContainer.innerHTML = `
+
       <div class="card">
+
         <h3>Tabla de Mujeres</h3>
 
         <div class="table-wrap">
+
           <table>
+
             <thead>
+
               <tr>
+
                 <th>#</th>
                 <th>Equipo</th>
                 <th>PJ</th>
@@ -1033,59 +1287,98 @@ function renderStandings() {
                 <th>GC</th>
                 <th>DG</th>
                 <th>PTS</th>
-                ${currentSession ? "<th>Admin</th>" : ""}
+
+                ${
+                  currentSession
+                    ? "<th>Admin</th>"
+                    : ""
+                }
+
               </tr>
+
             </thead>
 
             <tbody>
               ${renderStandingRows(women)}
             </tbody>
+
           </table>
+
         </div>
+
       </div>
     `;
   }
 }
 
 function renderStandingRows(rows) {
-  return rows.map((row, index) => `
-    <tr>
-      <td class="rank">${index + 1}</td>
 
-      <td>
-        <strong>${escapeHtml(row.team)}</strong>
+  return rows.map(
+    (row, index) => `
+
+      <tr>
+
+        <td class="rank">
+          ${index + 1}
+        </td>
+
+        <td>
+
+          <strong>
+            ${escapeHtml(row.team)}
+          </strong>
+
+          ${
+            row.manual !== 0
+              ? `
+                <br>
+                <small>
+                  Manual:
+                  ${
+                    row.manual > 0
+                      ? "+"
+                      : ""
+                  }${row.manual}
+                </small>
+              `
+              : ""
+          }
+
+        </td>
+
+        <td>${row.PJ}</td>
+        <td>${row.PG}</td>
+        <td>${row.PE}</td>
+        <td>${row.PP}</td>
+
+        <td>${row.GF}</td>
+        <td>${row.GC}</td>
+        <td>${row.DG}</td>
+
+        <td class="pts">
+          ${row.PTS}
+        </td>
+
         ${
-          row.manual !== 0
-            ? `<br><small>Manual: ${row.manual > 0 ? "+" : ""}${row.manual}</small>`
+          currentSession
+            ? `
+              <td>
+
+                <button
+                  class="outline"
+                  onclick="editTeamPoints('${escapeHtml(row.team)}')"
+                >
+                  Editar
+                </button>
+
+              </td>
+            `
             : ""
         }
-      </td>
 
-      <td>${row.PJ}</td>
-      <td>${row.PG}</td>
-      <td>${row.PE}</td>
-      <td>${row.PP}</td>
-      <td>${row.GF}</td>
-      <td>${row.GC}</td>
-      <td>${row.DG}</td>
-      <td class="pts">${row.PTS}</td>
-
-      ${
-        currentSession
-          ? `
-            <td>
-              <button
-                class="outline"
-                onclick="editTeamPoints('${escapeHtml(row.team)}')"
-              >
-                Editar
-              </button>
-            </td>
-          `
-          : ""
-      }
-    </tr>
-  `).join("");
+      </tr>
+    `
+  ).join("");
 }
 
 // ============================================================
@@ -1093,62 +1386,72 @@ function renderStandingRows(rows) {
 // ============================================================
 
 async function editTeamPoints(teamName) {
+
   if (!currentSession) {
-    alert("Debes iniciar sesión como administrador.");
+
+    alert(
+      "Debes iniciar sesión como administrador."
+    );
+
     return;
   }
 
-  const team = normalizeTeam(teamName);
+  const team =
+    normalizeTeam(teamName);
 
-  const current = getManualPoints(team);
+  const current =
+    getManualPoints(team);
 
-  const newValue = prompt(
-    `Puntos manuales para ${team}.\n\n` +
-    `Actualmente: ${current}\n\n` +
-    `Escribe el nuevo valor:`,
-    String(current)
-  );
+  const newValue =
+    prompt(
+      `Puntos manuales para ${team}.\n\n` +
+      `Actualmente: ${current}\n\n` +
+      `Escribe el nuevo valor:`,
+      String(current)
+    );
 
-  if (newValue === null) {
+  if (newValue === null) return;
+
+  const points =
+    Number(newValue);
+
+  if (
+    !Number.isFinite(points) ||
+    !Number.isInteger(points)
+  ) {
+
+    alert(
+      "Los puntos deben ser un número entero."
+    );
+
     return;
   }
 
-  const points = Number(newValue);
+  const reason =
+    prompt(
+      `Motivo de los puntos manuales para ${team}:`,
+      ""
+    );
 
-  if (!Number.isFinite(points) || !Number.isInteger(points)) {
-    alert("Los puntos deben ser un número entero.");
-    return;
-  }
+  if (reason === null) return;
 
-  const reason = prompt(
-    `Motivo de los puntos manuales para ${team}:`,
-    ""
-  );
-
-  if (reason === null) {
-    return;
-  }
-
-  console.log("Guardando puntos:", {
-    team,
-    points,
-    reason
-  });
-
-  // ----------------------------------------------------------
-  // IMPORTANTE:
-  // NO usamos upsert.
-  // Primero buscamos la fila y luego hacemos UPDATE o INSERT.
-  // ----------------------------------------------------------
-
-  const { data: existingRows, error: selectError } = await db
+  const {
+    data: existingRows,
+    error: selectError
+  } = await db
     .from("point_adjustments")
-    .select("id, team, points, reason, updated_at")
+    .select(
+      "id, team, points, reason, updated_at"
+    )
     .eq("team", team)
     .limit(1);
 
   if (selectError) {
-    console.error("POINT SELECT ERROR:", selectError);
+
+    console.error(
+      "POINT SELECT ERROR:",
+      selectError
+    );
 
     alert(
       "No se pudieron consultar los puntos.\n\n" +
@@ -1160,187 +1463,317 @@ async function editTeamPoints(teamName) {
 
   let saveError = null;
 
-  if (existingRows && existingRows.length > 0) {
-    const existing = existingRows[0];
+  if (
+    existingRows &&
+    existingRows.length > 0
+  ) {
 
-    const result = await db
-      .from("point_adjustments")
-      .update({
-        team: team,
-        points: points,
-        reason: reason,
-        updated_at: new Date().toISOString()
-      })
-      .eq("id", existing.id);
+    const existing =
+      existingRows[0];
 
-    saveError = result.error;
+    const result =
+      await db
+        .from("point_adjustments")
+        .update({
+          team,
+          points,
+          reason,
+          updated_at:
+            new Date().toISOString()
+        })
+        .eq(
+          "id",
+          existing.id
+        );
+
+    saveError =
+      result.error;
 
   } else {
-    const result = await db
-      .from("point_adjustments")
-      .insert({
-        team: team,
-        points: points,
-        reason: reason,
-        updated_at: new Date().toISOString()
-      });
 
-    saveError = result.error;
+    const result =
+      await db
+        .from("point_adjustments")
+        .insert({
+          team,
+          points,
+          reason,
+          updated_at:
+            new Date().toISOString()
+        });
+
+    saveError =
+      result.error;
   }
 
   if (saveError) {
-    console.error("POINT SAVE ERROR:", saveError);
+
+    console.error(
+      "POINT SAVE ERROR:",
+      saveError
+    );
 
     alert(
       "No se pudieron guardar los puntos.\n\n" +
-      saveError.message +
-      "\n\nRevisa también las políticas RLS de point_adjustments en Supabase."
+      saveError.message
     );
 
     return;
   }
 
-  alert(`Puntos de ${team} actualizados.`);
+  alert(
+    `Puntos de ${team} actualizados.`
+  );
 
   await refreshAll();
 }
 
-window.editTeamPoints = editTeamPoints;
+window.editTeamPoints =
+  editTeamPoints;
 
 // ============================================================
 // GOLEADORES
 // ============================================================
 
 async function loadScorers() {
-  const { data, error } = await db
-    .from("scorers")
-    .select("*")
-    .order("goals", { ascending: false });
+
+  const { data, error } =
+    await db
+      .from("scorers")
+      .select("*")
+      .order(
+        "goals",
+        {
+          ascending: false
+        }
+      );
 
   if (error) {
-    console.error("Error cargando goleadores:", error);
+
+    console.error(
+      "Error cargando goleadores:",
+      error
+    );
+
     scorersData = [];
+
     return;
   }
 
   scorersData = data || [];
 
-  scorersData = scorersData.map(player => ({
-    ...player,
-    team: normalizeTeam(player.team)
-  }));
+  scorersData =
+    scorersData.map(player => ({
+      ...player,
+      team:
+        normalizeTeam(player.team)
+    }));
 }
 
 function renderScorers() {
-  const men = $("menScorers");
-  const women = $("womenScorers");
 
-  const menScorers = scorersData
-    .filter(player => isMen(player.team))
-    .sort((a, b) => Number(b.goals || 0) - Number(a.goals || 0));
+  const men =
+    $("menScorers");
 
-  const womenScorers = scorersData
-    .filter(player => isWomen(player.team))
-    .sort((a, b) => Number(b.goals || 0) - Number(a.goals || 0));
+  const women =
+    $("womenScorers");
+
+  const menScorers =
+    scorersData
+      .filter(player =>
+        isMen(player.team)
+      )
+      .sort(
+        (a, b) =>
+          Number(b.goals || 0) -
+          Number(a.goals || 0)
+      );
+
+  const womenScorers =
+    scorersData
+      .filter(player =>
+        isWomen(player.team)
+      )
+      .sort(
+        (a, b) =>
+          Number(b.goals || 0) -
+          Number(a.goals || 0)
+      );
 
   if (men) {
-    men.innerHTML = renderScorerRows(menScorers);
+    men.innerHTML =
+      renderScorerRows(
+        menScorers
+      );
   }
 
   if (women) {
-    women.innerHTML = renderScorerRows(womenScorers);
+    women.innerHTML =
+      renderScorerRows(
+        womenScorers
+      );
   }
 }
 
 function renderScorerRows(rows) {
+
   if (!rows.length) {
+
     return `
       <tr>
-        <td colspan="${currentSession ? 4 : 3}">
+
+        <td
+          colspan="${currentSession ? 5 : 4}"
+        >
           No hay goleadores registrados.
         </td>
+
       </tr>
     `;
   }
 
-  return rows.map((player, index) => `
-    <tr>
-      <td>${index + 1}</td>
-      <td>${escapeHtml(player.player || player.name || "")}</td>
-      <td>${escapeHtml(player.team || "")}</td>
-      <td><strong>${Number(player.goals || 0)}</strong></td>
+  return rows.map(
+    (player, index) => `
 
-      ${
-        currentSession
-          ? `
-            <td>
-              <button
-                class="outline"
-                onclick="editScorer('${escapeHtml(player.id)}')"
-              >
-                Editar
-              </button>
+      <tr>
 
-              <button
-                class="danger"
-                onclick="deleteScorer('${escapeHtml(player.id)}')"
-              >
-                Eliminar
-              </button>
-            </td>
-          `
-          : ""
-      }
-    </tr>
-  `).join("");
+        <td>
+          ${index + 1}
+        </td>
+
+        <td>
+          ${escapeHtml(
+            player.player ||
+            player.name ||
+            ""
+          )}
+        </td>
+
+        <td>
+          ${escapeHtml(
+            player.team || ""
+          )}
+        </td>
+
+        <td>
+          <strong>
+            ${Number(
+              player.goals || 0
+            )}
+          </strong>
+        </td>
+
+        ${
+          currentSession
+            ? `
+              <td>
+
+                <button
+                  class="outline"
+                  onclick="editScorer('${escapeHtml(player.id)}')"
+                >
+                  Editar
+                </button>
+
+                <button
+                  class="danger"
+                  onclick="deleteScorer('${escapeHtml(player.id)}')"
+                >
+                  Eliminar
+                </button>
+
+              </td>
+            `
+            : ""
+        }
+
+      </tr>
+    `
+  ).join("");
 }
 
 async function addScorer() {
+
   if (!currentSession) {
-    alert("Debes iniciar sesión como administrador.");
+
+    alert(
+      "Debes iniciar sesión como administrador."
+    );
+
     return;
   }
 
-  const player = prompt("Nombre del goleador:");
+  const player =
+    prompt(
+      "Nombre del goleador:"
+    );
 
   if (!player) return;
 
-  const teamInput = prompt(
-    "Equipo:\n\n" +
-    ALL_TEAMS.join("\n")
-  );
+  const teamInput =
+    prompt(
+      "Equipo:\n\n" +
+      ALL_TEAMS.join("\n")
+    );
 
   if (!teamInput) return;
 
-  const team = normalizeTeam(teamInput);
+  const team =
+    normalizeTeam(teamInput);
 
   if (!ALL_TEAMS.includes(team)) {
-    alert("Ese equipo no existe.");
+
+    alert(
+      "Ese equipo no existe."
+    );
+
     return;
   }
 
-  const goalsInput = prompt("Cantidad de goles:", "0");
+  const goalsInput =
+    prompt(
+      "Cantidad de goles:",
+      "0"
+    );
 
   if (goalsInput === null) return;
 
-  const goals = Number(goalsInput);
+  const goals =
+    Number(goalsInput);
 
-  if (!Number.isInteger(goals) || goals < 0) {
-    alert("Los goles deben ser un número entero.");
+  if (
+    !Number.isInteger(goals) ||
+    goals < 0
+  ) {
+
+    alert(
+      "Los goles deben ser un número entero."
+    );
+
     return;
   }
 
-  const { error } = await db
-    .from("scorers")
-    .insert({
-      player,
-      team,
-      goals
-    });
+  const { error } =
+    await db
+      .from("scorers")
+      .insert({
+        player,
+        team,
+        goals
+      });
 
   if (error) {
-    console.error("ADD SCORER ERROR:", error);
-    alert("No se pudo agregar el goleador:\n\n" + error.message);
+
+    console.error(
+      "ADD SCORER ERROR:",
+      error
+    );
+
+    alert(
+      "No se pudo agregar el goleador:\n\n" +
+      error.message
+    );
+
     return;
   }
 
@@ -1348,64 +1781,102 @@ async function addScorer() {
 }
 
 async function editScorer(id) {
+
   if (!currentSession) {
-    alert("Debes iniciar sesión como administrador.");
+
+    alert(
+      "Debes iniciar sesión como administrador."
+    );
+
     return;
   }
 
-  const playerData = scorersData.find(
-    player => String(player.id) === String(id)
-  );
+  const playerData =
+    scorersData.find(
+      player =>
+        String(player.id) ===
+        String(id)
+    );
 
   if (!playerData) return;
 
-  const player = prompt(
-    "Nombre del goleador:",
-    playerData.player || playerData.name || ""
-  );
+  const player =
+    prompt(
+      "Nombre del goleador:",
+      playerData.player ||
+      playerData.name ||
+      ""
+    );
 
   if (!player) return;
 
-  const teamInput = prompt(
-    "Equipo:",
-    playerData.team || ""
-  );
+  const teamInput =
+    prompt(
+      "Equipo:",
+      playerData.team || ""
+    );
 
   if (!teamInput) return;
 
-  const team = normalizeTeam(teamInput);
+  const team =
+    normalizeTeam(teamInput);
 
   if (!ALL_TEAMS.includes(team)) {
-    alert("Ese equipo no existe.");
+
+    alert(
+      "Ese equipo no existe."
+    );
+
     return;
   }
 
-  const goalsInput = prompt(
-    "Cantidad de goles:",
-    String(playerData.goals || 0)
-  );
+  const goalsInput =
+    prompt(
+      "Cantidad de goles:",
+      String(
+        playerData.goals || 0
+      )
+    );
 
   if (goalsInput === null) return;
 
-  const goals = Number(goalsInput);
+  const goals =
+    Number(goalsInput);
 
-  if (!Number.isInteger(goals) || goals < 0) {
-    alert("Los goles deben ser un número entero.");
+  if (
+    !Number.isInteger(goals) ||
+    goals < 0
+  ) {
+
+    alert(
+      "Los goles deben ser un número entero."
+    );
+
     return;
   }
 
-  const { error } = await db
-    .from("scorers")
-    .update({
-      player,
-      team,
-      goals
-    })
-    .eq("id", id);
+  const { error } =
+    await db
+      .from("scorers")
+      .update({
+        player,
+        team,
+        goals
+      })
+      .eq("id", id);
 
   if (error) {
-    console.error("EDIT SCORER ERROR:", error);
-    alert("No se pudo editar:\n\n" + error.message);
+
+    console.error(
+      "EDIT SCORER ERROR:",
+      error
+    );
+
+    alert(
+      "No se pudo editar:\n\n" +
+      error.message
+    );
+
     return;
   }
 
@@ -1413,63 +1884,105 @@ async function editScorer(id) {
 }
 
 async function deleteScorer(id) {
+
   if (!currentSession) {
-    alert("Debes iniciar sesión como administrador.");
+
+    alert(
+      "Debes iniciar sesión como administrador."
+    );
+
     return;
   }
 
-  if (!confirm("¿Eliminar este goleador?")) {
+  if (
+    !confirm(
+      "¿Eliminar este goleador?"
+    )
+  ) {
     return;
   }
 
-  const { error } = await db
-    .from("scorers")
-    .delete()
-    .eq("id", id);
+  const { error } =
+    await db
+      .from("scorers")
+      .delete()
+      .eq("id", id);
 
   if (error) {
-    console.error("DELETE SCORER ERROR:", error);
-    alert("No se pudo eliminar:\n\n" + error.message);
+
+    console.error(
+      "DELETE SCORER ERROR:",
+      error
+    );
+
+    alert(
+      "No se pudo eliminar:\n\n" +
+      error.message
+    );
+
     return;
   }
 
   await refreshAll();
 }
 
-window.addScorer = addScorer;
-window.editScorer = editScorer;
-window.deleteScorer = deleteScorer;
+window.addScorer =
+  addScorer;
+
+window.editScorer =
+  editScorer;
+
+window.deleteScorer =
+  deleteScorer;
 
 // ============================================================
 // SANCIONES
 // ============================================================
 
 async function loadSanctions() {
-  const { data, error } = await db
-    .from("sanctions")
-    .select("*")
-    .order("created_at", { ascending: false });
+
+  const { data, error } =
+    await db
+      .from("sanctions")
+      .select("*")
+      .order(
+        "created_at",
+        {
+          ascending: false
+        }
+      );
 
   if (error) {
-    console.error("Error cargando sanciones:", error);
+
+    console.error(
+      "Error cargando sanciones:",
+      error
+    );
+
     sanctionsData = [];
+
     return;
   }
 
   sanctionsData = data || [];
 
-  sanctionsData = sanctionsData.map(item => ({
-    ...item,
-    team: normalizeTeam(item.team)
-  }));
+  sanctionsData =
+    sanctionsData.map(item => ({
+      ...item,
+      team:
+        normalizeTeam(item.team)
+    }));
 }
 
 function renderSanctions() {
-  const container = $("sanctions");
+
+  const container =
+    $("sanctions");
 
   if (!container) return;
 
   if (!sanctionsData.length) {
+
     container.innerHTML = `
       <div class="empty">
         No hay sanciones registradas.
@@ -1479,78 +1992,109 @@ function renderSanctions() {
     return;
   }
 
-  container.innerHTML = sanctionsData.map(item => `
-    <div class="sanction">
+  container.innerHTML =
+    sanctionsData.map(
+      item => `
 
-      <div>
-        <strong>${escapeHtml(item.player || "")}</strong>
-      </div>
+        <div class="sanction">
 
-      <div>
-        ${escapeHtml(item.team || "")}
-      </div>
+          <div>
+            <strong>
+              ${escapeHtml(
+                item.player || ""
+              )}
+            </strong>
+          </div>
 
-      <div>
-        <strong>${escapeHtml(item.type || "")}</strong>
-      </div>
+          <div>
+            ${escapeHtml(
+              item.team || ""
+            )}
+          </div>
 
-      <div>
-        ${escapeHtml(item.description || "")}
-      </div>
+          <div>
+            <strong>
+              ${escapeHtml(
+                item.type || ""
+              )}
+            </strong>
+          </div>
 
-      ${
-        currentSession
-          ? `
-            <div>
-              <button
-                class="outline"
-                onclick="editSanction('${escapeHtml(item.id)}')"
-              >
-                Editar
-              </button>
+          <div>
+            ${escapeHtml(
+              item.description || ""
+            )}
+          </div>
 
-              <button
-                class="danger"
-                onclick="deleteSanction('${escapeHtml(item.id)}')"
-              >
-                Eliminar
-              </button>
-            </div>
-          `
-          : ""
-      }
+          ${
+            currentSession
+              ? `
+                <div>
 
-    </div>
-  `).join("");
+                  <button
+                    class="outline"
+                    onclick="editSanction('${escapeHtml(item.id)}')"
+                  >
+                    Editar
+                  </button>
+
+                  <button
+                    class="danger"
+                    onclick="deleteSanction('${escapeHtml(item.id)}')"
+                  >
+                    Eliminar
+                  </button>
+
+                </div>
+              `
+              : ""
+          }
+
+        </div>
+      `
+    ).join("");
 }
 
-// ------------------------------------------------------------
+// ============================================================
 // TIPO DE SANCIÓN
-// ------------------------------------------------------------
+// ============================================================
 
-function chooseSanctionType(currentType = "") {
-  const choice = prompt(
-    "Tipo de sanción:\n\n" +
-    "1 = Tarjeta amarilla\n" +
-    "2 = Tarjeta roja\n" +
-    "3 = Suspensión\n" +
-    "4 = Otra\n\n" +
-    `Actual: ${currentType || "Ninguna"}\n\n` +
-    "Escribe 1, 2, 3 o 4:",
-    currentType === "Tarjeta amarilla"
-      ? "1"
-      : currentType === "Tarjeta roja"
+function chooseSanctionType(
+  currentType = ""
+) {
+
+  const choice =
+    prompt(
+      "Tipo de sanción:\n\n" +
+      "1 = Tarjeta amarilla\n" +
+      "2 = Tarjeta roja\n" +
+      "3 = Suspensión\n" +
+      "4 = Otra\n\n" +
+      `Actual: ${
+        currentType || "Ninguna"
+      }\n\n` +
+      "Escribe 1, 2, 3 o 4:",
+
+      currentType ===
+        "Tarjeta amarilla"
+        ? "1"
+        : currentType ===
+          "Tarjeta roja"
         ? "2"
-        : currentType === "Suspensión"
-          ? "3"
-          : currentType === "Otra"
-            ? "4"
-            : "1"
-  );
+        : currentType ===
+          "Suspensión"
+        ? "3"
+        : currentType ===
+          "Otra"
+        ? "4"
+        : "1"
+    );
 
-  if (choice === null) return null;
+  if (choice === null)
+    return null;
 
-  const value = String(choice).trim();
+  const value =
+    String(choice).trim();
 
   const types = {
     "1": "Tarjeta amarilla",
@@ -1560,65 +2104,89 @@ function chooseSanctionType(currentType = "") {
   };
 
   if (!types[value]) {
-    alert("Selecciona 1, 2, 3 o 4.");
+
+    alert(
+      "Selecciona 1, 2, 3 o 4."
+    );
+
     return null;
   }
 
   return types[value];
 }
 
-// ------------------------------------------------------------
+// ============================================================
 // AGREGAR SANCIÓN
-// ------------------------------------------------------------
+// ============================================================
 
 async function addSanction() {
+
   if (!currentSession) {
-    alert("Debes iniciar sesión como administrador.");
+
+    alert(
+      "Debes iniciar sesión como administrador."
+    );
+
     return;
   }
 
-  const player = prompt("Nombre del jugador:");
+  const player =
+    prompt(
+      "Nombre del jugador:"
+    );
 
   if (!player) return;
 
-  const teamInput = prompt(
-    "Equipo:\n\n" +
-    ALL_TEAMS.join("\n")
-  );
+  const teamInput =
+    prompt(
+      "Equipo:\n\n" +
+      ALL_TEAMS.join("\n")
+    );
 
   if (!teamInput) return;
 
-  const team = normalizeTeam(teamInput);
+  const team =
+    normalizeTeam(teamInput);
 
   if (!ALL_TEAMS.includes(team)) {
-    alert("Ese equipo no existe.");
+
+    alert(
+      "Ese equipo no existe."
+    );
+
     return;
   }
 
-  // AQUÍ ESTÁ LA CORRECCIÓN:
-  // vuelve a existir el selector de TARJETA.
-  const type = chooseSanctionType();
+  const type =
+    chooseSanctionType();
 
   if (!type) return;
 
-  const description = prompt(
-    "Descripción de la sanción:",
-    ""
-  );
+  const description =
+    prompt(
+      "Descripción de la sanción:",
+      ""
+    );
 
-  if (description === null) return;
+  if (description === null)
+    return;
 
-  const { error } = await db
-    .from("sanctions")
-    .insert({
-      team,
-      player,
-      type,
-      description
-    });
+  const { error } =
+    await db
+      .from("sanctions")
+      .insert({
+        team,
+        player,
+        type,
+        description
+      });
 
   if (error) {
-    console.error("ADD SANCTION ERROR:", error);
+
+    console.error(
+      "ADD SANCTION ERROR:",
+      error
+    );
 
     alert(
       "No se pudo guardar la sanción.\n\n" +
@@ -1631,68 +2199,91 @@ async function addSanction() {
   await refreshAll();
 }
 
-// ------------------------------------------------------------
+// ============================================================
 // EDITAR SANCIÓN
-// ------------------------------------------------------------
+// ============================================================
 
 async function editSanction(id) {
+
   if (!currentSession) {
-    alert("Debes iniciar sesión como administrador.");
+
+    alert(
+      "Debes iniciar sesión como administrador."
+    );
+
     return;
   }
 
-  const sanction = sanctionsData.find(
-    item => String(item.id) === String(id)
-  );
+  const sanction =
+    sanctionsData.find(
+      item =>
+        String(item.id) ===
+        String(id)
+    );
 
   if (!sanction) return;
 
-  const player = prompt(
-    "Nombre del jugador:",
-    sanction.player || ""
-  );
+  const player =
+    prompt(
+      "Nombre del jugador:",
+      sanction.player || ""
+    );
 
   if (!player) return;
 
-  const teamInput = prompt(
-    "Equipo:",
-    sanction.team || ""
-  );
+  const teamInput =
+    prompt(
+      "Equipo:",
+      sanction.team || ""
+    );
 
   if (!teamInput) return;
 
-  const team = normalizeTeam(teamInput);
+  const team =
+    normalizeTeam(teamInput);
 
   if (!ALL_TEAMS.includes(team)) {
-    alert("Ese equipo no existe.");
+
+    alert(
+      "Ese equipo no existe."
+    );
+
     return;
   }
 
-  const type = chooseSanctionType(
-    sanction.type || ""
-  );
+  const type =
+    chooseSanctionType(
+      sanction.type || ""
+    );
 
   if (!type) return;
 
-  const description = prompt(
-    "Descripción de la sanción:",
-    sanction.description || ""
-  );
+  const description =
+    prompt(
+      "Descripción de la sanción:",
+      sanction.description || ""
+    );
 
-  if (description === null) return;
+  if (description === null)
+    return;
 
-  const { error } = await db
-    .from("sanctions")
-    .update({
-      team,
-      player,
-      type,
-      description
-    })
-    .eq("id", id);
+  const { error } =
+    await db
+      .from("sanctions")
+      .update({
+        team,
+        player,
+        type,
+        description
+      })
+      .eq("id", id);
 
   if (error) {
-    console.error("EDIT SANCTION ERROR:", error);
+
+    console.error(
+      "EDIT SANCTION ERROR:",
+      error
+    );
 
     alert(
       "No se pudo editar la sanción.\n\n" +
@@ -1705,27 +2296,41 @@ async function editSanction(id) {
   await refreshAll();
 }
 
-// ------------------------------------------------------------
+// ============================================================
 // ELIMINAR SANCIÓN
-// ------------------------------------------------------------
+// ============================================================
 
 async function deleteSanction(id) {
+
   if (!currentSession) {
-    alert("Debes iniciar sesión como administrador.");
+
+    alert(
+      "Debes iniciar sesión como administrador."
+    );
+
     return;
   }
 
-  if (!confirm("¿Eliminar esta sanción?")) {
+  if (
+    !confirm(
+      "¿Eliminar esta sanción?"
+    )
+  ) {
     return;
   }
 
-  const { error } = await db
-    .from("sanctions")
-    .delete()
-    .eq("id", id);
+  const { error } =
+    await db
+      .from("sanctions")
+      .delete()
+      .eq("id", id);
 
   if (error) {
-    console.error("DELETE SANCTION ERROR:", error);
+
+    console.error(
+      "DELETE SANCTION ERROR:",
+      error
+    );
 
     alert(
       "No se pudo eliminar la sanción.\n\n" +
@@ -1738,112 +2343,342 @@ async function deleteSanction(id) {
   await refreshAll();
 }
 
-window.addSanction = addSanction;
-window.editSanction = editSanction;
-window.deleteSanction = deleteSanction;
+window.addSanction =
+  addSanction;
+
+window.editSanction =
+  editSanction;
+
+window.deleteSanction =
+  deleteSanction;
 
 // ============================================================
-// GRADO
+// GRADO / QUÉ TAN LIMPIO ES
 // ============================================================
 
 async function loadCleanliness() {
-  const { data, error } = await db
-    .from("cleanliness_scores")
-    .select("*");
+
+  const { data, error } =
+    await db
+      .from("cleanliness_scores")
+      .select("*");
 
   if (error) {
-    console.error("Error cargando grado:", error);
+
+    console.error(
+      "Error cargando grado:",
+      error
+    );
+
     cleanlinessData = [];
+
     return;
   }
 
-  cleanlinessData = data || [];
+  cleanlinessData =
+    data || [];
+}
+
+function getCleanlinessName(row) {
+
+  return (
+    row.grade ??
+    row.grado ??
+    row.team ??
+    row.name ??
+    ""
+  );
+}
+
+function getCleanlinessPoints(row) {
+
+  return Number(
+    row.points ??
+    row.score ??
+    row.puntos ??
+    0
+  );
+}
+
+function getCleanlinessPointsColumn(row) {
+
+  if ("points" in row)
+    return "points";
+
+  if ("score" in row)
+    return "score";
+
+  if ("puntos" in row)
+    return "puntos";
+
+  return "points";
 }
 
 function renderCleanliness() {
-  const tbody = $("cleanlinessTable");
+
+  const tbody =
+    $("cleanlinessTable");
 
   if (!tbody) return;
 
   if (!cleanlinessData.length) {
+
     tbody.innerHTML = `
       <tr>
-        <td colspan="10">
+
+        <td
+          colspan="${currentSession ? 4 : 3}"
+        >
           No hay datos registrados.
         </td>
+
       </tr>
     `;
 
     return;
   }
 
-  tbody.innerHTML = cleanlinessData.map((row, index) => `
-    <tr>
-      <td>${index + 1}</td>
-      <td>${escapeHtml(
-        row.grade ||
-        row.grado ||
-        row.team ||
-        row.name ||
-        ""
-      )}</td>
-      <td>${escapeHtml(
-        row.points ??
-        row.score ??
-        row.puntos ??
-        0
-      )}</td>
-    </tr>
-  `).join("");
+  tbody.innerHTML =
+    cleanlinessData.map(
+      (row, index) => {
+
+        const name =
+          getCleanlinessName(row);
+
+        const points =
+          getCleanlinessPoints(row);
+
+        return `
+          <tr>
+
+            <td>
+              ${index + 1}
+            </td>
+
+            <td>
+              <strong>
+                ${escapeHtml(name)}
+              </strong>
+            </td>
+
+            <td>
+              <strong>
+                ${points}
+              </strong>
+            </td>
+
+            ${
+              currentSession
+                ? `
+                  <td>
+
+                    <button
+                      class="outline"
+                      onclick="editCleanliness('${escapeHtml(String(row.id))}')"
+                    >
+                      Editar
+                    </button>
+
+                  </td>
+                `
+                : ""
+            }
+
+          </tr>
+        `;
+      }
+    ).join("");
 }
+
+async function editCleanliness(id) {
+
+  if (!currentSession) {
+
+    alert(
+      "Debes iniciar sesión como administrador."
+    );
+
+    return;
+  }
+
+  const row =
+    cleanlinessData.find(
+      item =>
+        String(item.id) ===
+        String(id)
+    );
+
+  if (!row) {
+
+    alert(
+      "No se encontró el registro."
+    );
+
+    return;
+  }
+
+  const name =
+    getCleanlinessName(row);
+
+  const currentPoints =
+    getCleanlinessPoints(row);
+
+  const newPoints =
+    prompt(
+      `Puntos de limpieza para ${name}.\n\n` +
+      `Puntos actuales: ${currentPoints}\n\n` +
+      `Escribe los nuevos puntos:`,
+      String(currentPoints)
+    );
+
+  if (newPoints === null)
+    return;
+
+  const points =
+    Number(newPoints);
+
+  if (
+    !Number.isFinite(points) ||
+    !Number.isInteger(points)
+  ) {
+
+    alert(
+      "Los puntos deben ser un número entero."
+    );
+
+    return;
+  }
+
+  if (points < 0) {
+
+    alert(
+      "Los puntos no pueden ser negativos."
+    );
+
+    return;
+  }
+
+  const pointsColumn =
+    getCleanlinessPointsColumn(row);
+
+  const updateData = {};
+
+  updateData[pointsColumn] =
+    points;
+
+  const { error } =
+    await db
+      .from("cleanliness_scores")
+      .update(updateData)
+      .eq("id", row.id);
+
+  if (error) {
+
+    console.error(
+      "CLEANLINESS UPDATE ERROR:",
+      error
+    );
+
+    alert(
+      "No se pudieron guardar los puntos de limpieza.\n\n" +
+      error.message
+    );
+
+    return;
+  }
+
+  alert(
+    `Puntos de ${name} actualizados.`
+  );
+
+  await refreshAll();
+}
+
+window.editCleanliness =
+  editCleanliness;
 
 // ============================================================
 // EVENTOS
 // ============================================================
 
 function setupEvents() {
-  const loginBtn = $("loginBtn");
+
+  const loginBtn =
+    $("loginBtn");
 
   if (loginBtn) {
+
     loginBtn.onclick = () => {
+
       if (currentSession) {
+
         logout();
+
       } else {
+
         openModal("authModal");
       }
     };
   }
 
-  const addScorerBtn = $("addScorerBtn");
+  const addScorerBtn =
+    $("addScorerBtn");
 
   if (addScorerBtn) {
-    addScorerBtn.onclick = addScorer;
+    addScorerBtn.onclick =
+      addScorer;
   }
 
-  const addSanctionBtn = $("addSanctionBtn");
+  const addSanctionBtn =
+    $("addSanctionBtn");
 
   if (addSanctionBtn) {
-    addSanctionBtn.onclick = addSanction;
+    addSanctionBtn.onclick =
+      addSanction;
   }
 
-  const authModal = $("authModal");
+  const authModal =
+    $("authModal");
 
   if (authModal) {
-    authModal.addEventListener("click", event => {
-      if (event.target === authModal) {
-        closeModal("authModal");
+
+    authModal.addEventListener(
+      "click",
+      event => {
+
+        if (
+          event.target ===
+          authModal
+        ) {
+
+          closeModal(
+            "authModal"
+          );
+        }
       }
-    });
+    );
   }
 
-  const editModal = $("editModal");
+  const editModal =
+    $("editModal");
 
   if (editModal) {
-    editModal.addEventListener("click", event => {
-      if (event.target === editModal) {
-        closeModal("editModal");
+
+    editModal.addEventListener(
+      "click",
+      event => {
+
+        if (
+          event.target ===
+          editModal
+        ) {
+
+          closeModal(
+            "editModal"
+          );
+        }
       }
-    });
+    );
   }
 }
 
@@ -1851,31 +2686,45 @@ function setupEvents() {
 // AUTH STATE
 // ============================================================
 
-db.auth.onAuthStateChange((_event, session) => {
-  currentSession = session;
+db.auth.onAuthStateChange(
+  (_event, session) => {
 
-  setTimeout(() => {
-    updateAuthUI();
-    renderStandings();
-    renderMatches();
-    renderScorers();
-    renderSanctions();
-  }, 0);
-});
+    currentSession =
+      session;
+
+    setTimeout(() => {
+
+      updateAuthUI();
+
+      renderStandings();
+      renderMatches();
+      renderScorers();
+      renderSanctions();
+      renderCleanliness();
+
+    }, 0);
+  }
+);
 
 // ============================================================
 // INICIO
 // ============================================================
 
-document.addEventListener("DOMContentLoaded", async () => {
-  console.log("INTERAULAS: DOM cargado");
+document.addEventListener(
+  "DOMContentLoaded",
+  async () => {
 
-  setupEvents();
+    console.log(
+      "INTERAULAS: DOM cargado"
+    );
 
-  await checkSession();
+    setupEvents();
 
-  await refreshAll();
-});
+    await checkSession();
+
+    await refreshAll();
+  }
+);
 
 // ============================================================
 // EXPORTAR FUNCIONES
@@ -1885,8 +2734,31 @@ window.login = login;
 window.logout = logout;
 window.refreshAll = refreshAll;
 
-console.log("INTERAULAS: funciones globales cargadas correctamente.");
-console.log("refreshAll:", typeof window.refreshAll);
-console.log("editTeamPoints:", typeof window.editTeamPoints);
-console.log("addSanction:", typeof window.addSanction);
-console.log("editSanction:", typeof window.editSanction);
+console.log(
+  "INTERAULAS: funciones globales cargadas correctamente."
+);
+
+console.log(
+  "refreshAll:",
+  typeof window.refreshAll
+);
+
+console.log(
+  "editTeamPoints:",
+  typeof window.editTeamPoints
+);
+
+console.log(
+  "addSanction:",
+  typeof window.addSanction
+);
+
+console.log(
+  "editSanction:",
+  typeof window.editSanction
+);
+
+console.log(
+  "editCleanliness:",
+  typeof window.editCleanliness
+);
