@@ -2764,66 +2764,29 @@ function escapeHTML(value) {
 
 
 // ============================================================
-// FUNCIONES GLOBALES
+// FUNCIONES DISPONIBLES GLOBALMENTE
 // ============================================================
 
-window.refreshAll =
-  refreshAll;
+window.closeModal = closeModal;
+window.login = login;
+window.logout = logout;
 
-window.login =
-  login;
+window.editMatch = editMatch;
+window.saveMatch = saveMatch;
 
-window.logout =
-  logout;
+window.editTeamPoints = editTeamPoints;
 
-window.editMatch =
-  editMatch;
+window.openSanctionModal = openSanctionModal;
+window.editSanction = editSanction;
+window.deleteSanction = deleteSanction;
 
-window.saveMatch =
-  saveMatch;
+window.openScorerModal = openScorerModal;
+window.editScorer = editScorer;
+window.deleteScorer = deleteScorer;
 
-window.openSanctionModal =
-  openSanctionModal;
+window.refreshAll = refreshAll;
 
-window.addSanction =
-  addSanction;
-
-window.editSanction =
-  editSanction;
-
-window.saveSanction =
-  saveSanction;
-
-window.deleteSanction =
-  deleteSanction;
-
-window.openScorerModal =
-  openScorerModal;
-
-window.addScorer =
-  addScorer;
-
-window.editScorer =
-  editScorer;
-
-window.saveScorer =
-  saveScorer;
-
-window.deleteScorer =
-  deleteScorer;
-
-window.editCleanliness =
-  editCleanliness;
-
-window.editTeamPoints =
-  editTeamPoints;
-
-window.saveCleanliness =
-  saveCleanliness;
-
-window.closeModal =
-  closeModal;
-
+console.log("INTERAULAS: funciones globales cargadas correctamente.");
 
 // ============================================================
 // VERIFICACIÓN
