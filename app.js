@@ -6,16 +6,13 @@
 console.log("Interaulas 2026 app.js cargado correctamente.");
 
 /* =========================================================
-   CONFIGURACIÓN
+   SUPABASE
    ========================================================= */
 
-const db = window.supabaseClient || window.supabase?.createClient
-  ? (window.supabaseClient || window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY))
-  : null;
-
-if (!db) {
-  console.error("No se pudo inicializar Supabase.");
-}
+const db = supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_ANON_KEY
+);
 
 /* =========================================================
    EQUIPOS
@@ -44,6 +41,12 @@ const WOMEN = [
   "Innombrables",
   "Troncas",
   "Las Cabritas"
+];
+
+const ALL_TEAMS = [
+  ...MEN_A,
+  ...MEN_B,
+  ...WOMEN
 ];
 
 /* =========================================================
@@ -78,10 +81,8 @@ const MATCH_SCHEDULE = {
   5:  { date: "2026-09-16", home: "Papitos", away: "Trocos", gender: "M" },
   6:  { date: "2026-09-17", home: "Las Cabritas", away: "Troncas", gender: "F" },
   7:  { date: "2026-09-18", home: "Osos Mañosos", away: "La Banca", gender: "M" },
-
   9:  { date: "2026-09-22", home: "Fortnite", away: "Chispazos", gender: "M" },
   8:  { date: "2026-09-23", home: "Ponys", away: "Innombrables", gender: "F" },
-
   10: { date: "2026-09-24", home: "Jags", away: "Troncas", gender: "F" },
   11: { date: "2026-09-25", home: "TOROS FC", away: "Sin Espinas", gender: "M" },
   12: { date: "2026-09-28", home: "Osas Mañosas", away: "Las Cabritas", gender: "F" },
@@ -119,6 +120,7 @@ let allMatches = [];
 let allSanctions = [];
 let allScorers = [];
 let allCleanliness = [];
+let manualPoints = {};
 let selectedMatch = null;
 
 /* =========================================================
@@ -137,13 +139,14 @@ function escapeHtml(value) {
 function formatDate(dateString) {
   if (!dateString) return "";
 
-  const date = new Date(dateString + "T12:00:00");
-
-  return date.toLocaleDateString("es-GT", {
-    weekday: "long",
-    day: "numeric",
-    month: "long"
-  });
+  return new Date(dateString + "T12:00:00").toLocaleDateString(
+    "es-GT",
+    {
+      weekday: "long",
+      day: "numeric",
+      month: "long"
+    }
+  );
 }
 
 function getMatchNumber(match) {
@@ -153,8 +156,8 @@ function getMatchNumber(match) {
 
   const date = String(match?.date || "").slice(0, 10);
 
-  for (const [number, data] of Object.entries(MATCH_SCHEDULE)) {
-    if (data.date === date) {
+  for (const [number, info] of Object.entries(MATCH_SCHEDULE)) {
+    if (info.date === date) {
       return Number(number);
     }
   }
@@ -163,30 +166,42 @@ function getMatchNumber(match) {
 }
 
 function getMatchInfo(match) {
-  const number = getMatchNumber(match);
-  return MATCH_SCHEDULE[number] || null;
+  return MATCH_SCHEDULE[getMatchNumber(match)] || null;
 }
 
 function getMatchDate(match) {
   const info = getMatchInfo(match);
 
-  if (info) return info.date;
-
-  return String(match?.date || "").slice(0, 10);
+  return info
+    ? info.date
+    : String(match?.date || "").slice(0, 10);
 }
 
 function getHomeTeam(match) {
   const info = getMatchInfo(match);
-  return normalizeTeam(info?.home || match.home_team || match.home || "");
+
+  return normalizeTeam(
+    info?.home ||
+    match.home_team ||
+    match.home ||
+    ""
+  );
 }
 
 function getAwayTeam(match) {
   const info = getMatchInfo(match);
-  return normalizeTeam(info?.away || match.away_team || match.away || "");
+
+  return normalizeTeam(
+    info?.away ||
+    match.away_team ||
+    match.away ||
+    ""
+  );
 }
 
 function getGender(match) {
   const info = getMatchInfo(match);
+
   return info?.gender || match.gender || "M";
 }
 
@@ -200,7 +215,7 @@ function isPlayed(match) {
 }
 
 /* =========================================================
-   INICIALIZACIÓN
+   INICIO
    ========================================================= */
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -221,46 +236,25 @@ function setupButtons() {
   const loginBtn = document.getElementById("loginBtn");
 
   if (loginBtn) {
-    loginBtn.addEventListener("click", () => {
-      openModal("authModal");
-    });
-  }
-
-  const authModal = document.getElementById("authModal");
-
-  if (authModal) {
-    const buttons = authModal.querySelectorAll("button");
-
-    buttons.forEach(button => {
-      const text = button.textContent.trim().toLowerCase();
-
-      if (
-        text.includes("iniciar") ||
-        text.includes("entrar") ||
-        text.includes("login")
-      ) {
-        button.addEventListener("click", event => {
-          event.preventDefault();
-          login();
-        });
+    loginBtn.onclick = () => {
+      if (currentSession) {
+        logout();
+      } else {
+        openModal("authModal");
       }
-    });
+    };
   }
 
   const addScorerBtn = document.getElementById("addScorerBtn");
 
   if (addScorerBtn) {
-    addScorerBtn.addEventListener("click", () => {
-      addScorer();
-    });
+    addScorerBtn.onclick = addScorer;
   }
 
   const addSanctionBtn = document.getElementById("addSanctionBtn");
 
   if (addSanctionBtn) {
-    addSanctionBtn.addEventListener("click", () => {
-      addSanction();
-    });
+    addSanctionBtn.onclick = addSanction;
   }
 }
 
@@ -269,8 +263,6 @@ function setupButtons() {
    ========================================================= */
 
 async function checkSession() {
-  if (!db) return;
-
   try {
     const { data, error } = await db.auth.getSession();
 
@@ -279,26 +271,28 @@ async function checkSession() {
     currentSession = data.session;
 
     updateAuthUI();
+
   } catch (error) {
-    console.error("Error verificando sesión:", error);
+    console.error("Error comprobando sesión:", error);
+
     currentSession = null;
+
     updateAuthUI();
   }
 }
 
-if (db?.auth) {
-  db.auth.onAuthStateChange((event, session) => {
-    currentSession = session;
+db.auth.onAuthStateChange((event, session) => {
+  currentSession = session;
 
-    updateAuthUI();
+  updateAuthUI();
 
-    if (event === "SIGNED_IN" || event === "SIGNED_OUT") {
-      setTimeout(() => {
-        refreshAll();
-      }, 100);
-    }
-  });
-}
+  if (
+    event === "SIGNED_IN" ||
+    event === "SIGNED_OUT"
+  ) {
+    setTimeout(refreshAll, 100);
+  }
+});
 
 function updateAuthUI() {
   const loginBtn = document.getElementById("loginBtn");
@@ -306,9 +300,9 @@ function updateAuthUI() {
   const addSanctionBtn = document.getElementById("addSanctionBtn");
 
   if (currentSession) {
+
     if (loginBtn) {
       loginBtn.textContent = "Cerrar sesión";
-      loginBtn.onclick = logout;
     }
 
     if (addScorerBtn) {
@@ -322,9 +316,9 @@ function updateAuthUI() {
     }
 
   } else {
+
     if (loginBtn) {
       loginBtn.textContent = "Iniciar sesión";
-      loginBtn.onclick = () => openModal("authModal");
     }
 
     if (addScorerBtn) {
@@ -340,18 +334,14 @@ function updateAuthUI() {
 }
 
 async function login() {
-  if (!db) return;
-
-  const emailInput = document.getElementById("email");
-  const passwordInput = document.getElementById("password");
+  const email = document.getElementById("email")?.value.trim();
+  const password = document.getElementById("password")?.value;
   const message = document.getElementById("authMessage");
-
-  const email = emailInput?.value.trim();
-  const password = passwordInput?.value;
 
   if (!email || !password) {
     if (message) {
-      message.textContent = "Ingresa correo y contraseña.";
+      message.textContent =
+        "Ingresa correo y contraseña.";
     }
     return;
   }
@@ -361,10 +351,11 @@ async function login() {
   }
 
   try {
-    const { data, error } = await db.auth.signInWithPassword({
-      email,
-      password
-    });
+    const { data, error } =
+      await db.auth.signInWithPassword({
+        email,
+        password
+      });
 
     if (error) throw error;
 
@@ -372,11 +363,11 @@ async function login() {
 
     updateAuthUI();
 
+    closeModal("authModal");
+
     if (message) {
       message.textContent = "";
     }
-
-    closeModal("authModal");
 
     await refreshAll();
 
@@ -384,16 +375,17 @@ async function login() {
     console.error("Error de login:", error);
 
     if (message) {
-      message.textContent = error.message || "No se pudo iniciar sesión.";
+      message.textContent =
+        error.message || "No se pudo iniciar sesión.";
     }
   }
 }
 
 async function logout() {
-  if (!db) return;
-
   try {
-    await db.auth.signOut();
+    const { error } = await db.auth.signOut();
+
+    if (error) throw error;
 
     currentSession = null;
 
@@ -429,7 +421,7 @@ function closeModal(id) {
 }
 
 /* =========================================================
-   REFRESH
+   CARGAR TODO
    ========================================================= */
 
 async function refreshAll() {
@@ -439,21 +431,25 @@ async function refreshAll() {
     loadMatches(),
     loadScorers(),
     loadSanctions(),
-    loadCleanliness()
+    loadCleanliness(),
+    loadManualPoints()
   ]);
 
-  renderAll();
+  renderNextMatch();
+  await renderStandings();
+  renderMatches();
+  renderScorers();
+  renderCleanliness();
+  renderSanctions();
 
   console.log("INTERAULAS: datos cargados.");
 }
 
 /* =========================================================
-   MATCHES
+   PARTIDOS
    ========================================================= */
 
 async function loadMatches() {
-  if (!db) return;
-
   try {
     const { data, error } = await db
       .from("matches")
@@ -467,15 +463,6 @@ async function loadMatches() {
     console.error("Error cargando partidos:", error);
     allMatches = [];
   }
-}
-
-function renderAll() {
-  renderNextMatch();
-  renderStandings();
-  renderMatches(allMatches);
-  renderScorers();
-  renderCleanliness();
-  renderSanctions();
 }
 
 /* =========================================================
@@ -496,22 +483,29 @@ function renderNextMatch() {
       ...info
     }))
     .filter(match => {
-      const date = new Date(match.date + "T12:00:00");
+      const date = new Date(
+        match.date + "T12:00:00"
+      );
+
       return date >= today;
     })
-    .sort((a, b) => a.date.localeCompare(b.date));
+    .sort((a, b) =>
+      a.date.localeCompare(b.date)
+    );
 
   if (!upcoming.length) {
     container.innerHTML = `
       <div>
-        <div class="eyebrow" style="color:#98a2b3!important;">
+        <div class="eyebrow">
           INTERAULAS 2026
         </div>
+
         <h3 style="font-size:26px;margin:8px 0;">
           No hay próximos partidos
         </h3>
       </div>
     `;
+
     return;
   }
 
@@ -519,7 +513,11 @@ function renderNextMatch() {
 
   container.innerHTML = `
     <div style="width:100%;">
-      <div class="eyebrow" style="color:#98a2b3!important;">
+
+      <div
+        class="eyebrow"
+        style="color:#98a2b3!important;"
+      >
         PRÓXIMO PARTIDO
       </div>
 
@@ -534,8 +532,40 @@ function renderNextMatch() {
         ·
         ${next.gender === "M" ? "HOMBRES" : "MUJERES"}
       </p>
+
     </div>
   `;
+}
+
+/* =========================================================
+   PUNTOS MANUALES
+   ========================================================= */
+
+async function loadManualPoints() {
+  try {
+    const { data, error } = await db
+      .from("point_adjustments")
+      .select("*");
+
+    if (error) throw error;
+
+    manualPoints = {};
+
+    (data || []).forEach(row => {
+      const team = normalizeTeam(row.team);
+
+      manualPoints[team] =
+        Number(row.points || 0);
+    });
+
+  } catch (error) {
+    console.error(
+      "Error cargando puntos manuales:",
+      error
+    );
+
+    manualPoints = {};
+  }
 }
 
 /* =========================================================
@@ -553,7 +583,9 @@ function createEmptyTeam(name) {
     ga: 0,
     gd: 0,
     points: 0,
-    manualPoints: 0
+    manualPoints: Number(
+      manualPoints[name] || 0
+    )
   };
 }
 
@@ -561,129 +593,87 @@ function calculateStandings(teamNames, gender) {
   const teams = {};
 
   teamNames.forEach(team => {
-    teams[team] = createEmptyTeam(team);
+    teams[team] =
+      createEmptyTeam(team);
   });
 
-  const relevantMatches = allMatches.filter(match => {
-    return getGender(match) === gender;
-  });
+  allMatches
+    .filter(match =>
+      getGender(match) === gender
+    )
+    .forEach(match => {
 
-  relevantMatches.forEach(match => {
-    if (!isPlayed(match)) return;
+      if (!isPlayed(match)) return;
 
-    const home = getHomeTeam(match);
-    const away = getAwayTeam(match);
+      const home = getHomeTeam(match);
+      const away = getAwayTeam(match);
 
-    if (!teams[home] || !teams[away]) return;
+      if (!teams[home] || !teams[away]) {
+        return;
+      }
 
-    const hs = Number(match.home_score);
-    const as = Number(match.away_score);
+      const hs = Number(match.home_score);
+      const as = Number(match.away_score);
 
-    teams[home].played++;
-    teams[away].played++;
+      teams[home].played++;
+      teams[away].played++;
 
-    teams[home].gf += hs;
-    teams[home].ga += as;
+      teams[home].gf += hs;
+      teams[home].ga += as;
 
-    teams[away].gf += as;
-    teams[away].ga += hs;
+      teams[away].gf += as;
+      teams[away].ga += hs;
 
-    if (hs > as) {
-      teams[home].wins++;
-      teams[away].losses++;
+      if (hs > as) {
 
-      teams[home].points += 3;
+        teams[home].wins++;
+        teams[away].losses++;
 
-    } else if (hs < as) {
-      teams[away].wins++;
-      teams[home].losses++;
+        teams[home].points += 3;
 
-      teams[away].points += 3;
+      } else if (hs < as) {
 
-    } else {
-      teams[home].draws++;
-      teams[away].draws++;
+        teams[away].wins++;
+        teams[home].losses++;
 
-      teams[home].points++;
-      teams[away].points++;
-    }
-  });
+        teams[away].points += 3;
+
+      } else {
+
+        teams[home].draws++;
+        teams[away].draws++;
+
+        teams[home].points++;
+        teams[away].points++;
+      }
+    });
 
   Object.values(teams).forEach(team => {
-    team.gd = team.gf - team.ga;
+    team.gd =
+      team.gf - team.ga;
+
+    team.points +=
+      team.manualPoints;
   });
 
   return Object.values(teams);
 }
 
-/* =========================================================
-   PUNTOS MANUALES
-   ========================================================= */
-
-async function loadManualPoints() {
-  if (!db) return {};
-
-  try {
-    const { data, error } = await db
-      .from("team_manual_points")
-      .select("*");
-
-    if (error) {
-      console.warn(
-        "No se pudieron cargar los puntos manuales:",
-        error.message
-      );
-
-      return {};
-    }
-
-    const result = {};
-
-    (data || []).forEach(row => {
-      const team = normalizeTeam(row.team || row.team_name);
-
-      result[team] = Number(row.points || 0);
-    });
-
-    return result;
-
-  } catch (error) {
-    console.error("Error cargando puntos manuales:", error);
-    return {};
-  }
-}
-
-async function applyManualPoints(standings) {
-  const manualPoints = await loadManualPoints();
-
-  standings.forEach(team => {
-    team.manualPoints = Number(manualPoints[team.name] || 0);
-
-    /*
-      Los puntos manuales se SUMAN a los puntos obtenidos
-      normalmente por los partidos.
-    */
-    team.points += team.manualPoints;
-  });
-
-  return standings;
-}
-
-/* =========================================================
-   RENDER TABLAS
-   ========================================================= */
-
 async function renderStandings() {
-  const menContainer = document.getElementById("menTables");
-  const womenContainer = document.getElementById("womenTable");
+  const menContainer =
+    document.getElementById("menTables");
 
-  let menA = calculateStandings(MEN_A, "M");
-  let menB = calculateStandings(MEN_B, "M");
-  let women = calculateStandings(WOMEN, "F");
+  const womenContainer =
+    document.getElementById("womenTable");
 
-  menA = await applyManualPoints(menA);
-  menB = await applyManualPoints(menB);
-  women = await applyManualPoints(women);
+  const menA =
+    calculateStandings(MEN_A, "M");
+
+  const menB =
+    calculateStandings(MEN_B, "M");
+
+  const women =
+    calculateStandings(WOMEN, "F");
 
   sortStandings(menA);
   sortStandings(menB);
@@ -691,21 +681,30 @@ async function renderStandings() {
 
   if (menContainer) {
     menContainer.innerHTML = `
-      ${renderStandingsCard("Grupo A", menA)}
-      ${renderStandingsCard("Grupo B", menB)}
+      ${renderStandingsCard(
+        "Grupo A",
+        menA
+      )}
+
+      ${renderStandingsCard(
+        "Grupo B",
+        menB
+      )}
     `;
   }
 
   if (womenContainer) {
-    womenContainer.innerHTML = renderStandingsCard(
-      "Tabla Femenina",
-      women
-    );
+    womenContainer.innerHTML =
+      renderStandingsCard(
+        "Tabla Femenina",
+        women
+      );
   }
 }
 
 function sortStandings(standings) {
   standings.sort((a, b) => {
+
     if (b.points !== a.points) {
       return b.points - a.points;
     }
@@ -718,17 +717,27 @@ function sortStandings(standings) {
       return b.gf - a.gf;
     }
 
-    return a.name.localeCompare(b.name);
+    return a.name.localeCompare(
+      b.name
+    );
   });
 }
 
-function renderStandingsCard(title, standings) {
+function renderStandingsCard(
+  title,
+  standings
+) {
   return `
     <div class="card">
-      <h3>${escapeHtml(title)}</h3>
+
+      <h3>
+        ${escapeHtml(title)}
+      </h3>
 
       <div class="table-wrap">
+
         <table>
+
           <thead>
             <tr>
               <th>#</th>
@@ -741,277 +750,402 @@ function renderStandingsCard(title, standings) {
               <th>GC</th>
               <th>DG</th>
               <th>PTS</th>
-              ${currentSession ? "<th>EDITAR</th>" : ""}
+
+              ${
+                currentSession
+                  ? "<th>EDITAR</th>"
+                  : ""
+              }
             </tr>
           </thead>
 
           <tbody>
-            ${renderStandingRows(standings)}
+            ${renderStandingRows(
+              standings
+            )}
           </tbody>
+
         </table>
+
       </div>
+
     </div>
   `;
 }
 
 function renderStandingRows(standings) {
-  return standings.map((team, index) => `
-    <tr>
-      <td class="rank">${index + 1}</td>
+  return standings.map(
+    (team, index) => `
+      <tr>
 
-      <td>
-        <strong>${escapeHtml(team.name)}</strong>
-      </td>
+        <td class="rank">
+          ${index + 1}
+        </td>
 
-      <td>${team.played}</td>
-      <td>${team.wins}</td>
-      <td>${team.draws}</td>
-      <td>${team.losses}</td>
-      <td>${team.gf}</td>
-      <td>${team.ga}</td>
-      <td>${team.gd}</td>
+        <td>
+          <strong>
+            ${escapeHtml(team.name)}
+          </strong>
+        </td>
 
-      <td class="pts">
-        ${team.points}
+        <td>${team.played}</td>
+        <td>${team.wins}</td>
+        <td>${team.draws}</td>
+        <td>${team.losses}</td>
+        <td>${team.gf}</td>
+        <td>${team.ga}</td>
+        <td>${team.gd}</td>
+
+        <td class="pts">
+          ${team.points}
+
+          ${
+            team.manualPoints !== 0
+              ? `
+                <small
+                  style="
+                    display:block;
+                    color:#667085;
+                    font-size:10px;
+                  "
+                >
+                  ${
+                    team.manualPoints > 0
+                      ? "+"
+                      : ""
+                  }${team.manualPoints} manual
+                </small>
+              `
+              : ""
+          }
+
+        </td>
+
         ${
-          team.manualPoints > 0
-            ? `<small style="display:block;color:#667085;">
-                +${team.manualPoints}
-              </small>`
+          currentSession
+            ? `
+              <td>
+
+                <button
+                  class="outline edit"
+                  onclick="editTeamPoints('${escapeHtml(
+                    team.name
+                  )}')"
+                >
+                  ✏️ Editar
+                </button>
+
+              </td>
+            `
             : ""
         }
-      </td>
 
-      ${
-        currentSession
-          ? `
-            <td>
-              <button
-                class="outline edit"
-                onclick="editTeamPoints('${escapeHtml(team.name)}', ${team.manualPoints})"
-              >
-                ✏️ Editar
-              </button>
-            </td>
-          `
-          : ""
-      }
-    </tr>
-  `).join("");
+      </tr>
+    `
+  ).join("");
 }
 
 /* =========================================================
-   EDITAR PUNTOS MANUALES
+   EDITAR PUNTOS
    ========================================================= */
 
-async function editTeamPoints(teamName, currentManualPoints = 0) {
+async function editTeamPoints(teamName) {
+
   if (!currentSession) {
-    alert("Debes iniciar sesión como organizador.");
-    return;
-  }
-
-  const newPoints = prompt(
-    `Puntos manuales para ${teamName}:`,
-    currentManualPoints
-  );
-
-  if (newPoints === null) return;
-
-  const points = Number(newPoints);
-
-  if (!Number.isInteger(points) || points < 0) {
-    alert("Ingresa un número entero válido.");
+    alert(
+      "Debes iniciar sesión como organizador."
+    );
     return;
   }
 
   try {
-    const { error } = await db
-      .from("team_manual_points")
-      .upsert(
-        {
-          team: teamName,
-          points: points
-        },
-        {
-          onConflict: "team"
-        }
-      );
+
+    const { data, error } =
+      await db
+        .from("point_adjustments")
+        .select("*")
+        .eq("team", teamName)
+        .maybeSingle();
 
     if (error) throw error;
 
-    alert(`Puntos manuales de ${teamName} actualizados.`);
+    const currentPoints =
+      Number(data?.points || 0);
+
+    const currentReason =
+      data?.reason || "";
+
+    const newPointsInput =
+      prompt(
+        `Puntos manuales para ${teamName}:`,
+        currentPoints
+      );
+
+    if (newPointsInput === null) {
+      return;
+    }
+
+    const newPoints =
+      Number(newPointsInput);
+
+    if (
+      !Number.isInteger(newPoints)
+    ) {
+      alert(
+        "Los puntos deben ser un número entero."
+      );
+      return;
+    }
+
+    const reason =
+      prompt(
+        "Razón del ajuste de puntos:",
+        currentReason
+      );
+
+    if (reason === null) {
+      return;
+    }
+
+    const { error: saveError } =
+      await db
+        .from("point_adjustments")
+        .upsert(
+          {
+            team: teamName,
+            points: newPoints,
+            reason: reason,
+            updated_at:
+              new Date().toISOString()
+          },
+          {
+            onConflict: "team"
+          }
+        );
+
+    if (saveError) {
+      throw saveError;
+    }
+
+    alert(
+      `Los puntos de ${teamName} fueron actualizados.`
+    );
 
     await refreshAll();
 
   } catch (error) {
-    console.error("Error actualizando puntos:", error);
+
+    console.error(
+      "Error editando puntos:",
+      error
+    );
 
     alert(
-      "No se pudieron actualizar los puntos.\n\n" +
+      "No se pudieron actualizar los puntos:\n\n" +
       error.message
     );
   }
 }
 
 /* =========================================================
-   PARTIDOS
+   CALENDARIO
    ========================================================= */
 
-function renderMatches(matches) {
-  const container = document.getElementById("matches");
+function renderMatches() {
+  const container =
+    document.getElementById("matches");
 
   if (!container) return;
 
-  const sorted = [...matches].sort((a, b) => {
-    return getMatchDate(a).localeCompare(getMatchDate(b));
-  });
-
-  const grouped = {};
-
-  sorted.forEach(match => {
-    const date = getMatchDate(match);
-
-    if (!grouped[date]) {
-      grouped[date] = [];
-    }
-
-    grouped[date].push(match);
-  });
-
-  const scheduleNumbers = Object.keys(MATCH_SCHEDULE)
-    .map(Number)
-    .sort((a, b) => {
-      return MATCH_SCHEDULE[a].date.localeCompare(
-        MATCH_SCHEDULE[b].date
+  const scheduleNumbers =
+    Object.keys(MATCH_SCHEDULE)
+      .map(Number)
+      .sort(
+        (a, b) =>
+          MATCH_SCHEDULE[a].date.localeCompare(
+            MATCH_SCHEDULE[b].date
+          )
       );
-    });
 
-  /*
-    Renderizamos usando el calendario oficial para garantizar
-    que todos los partidos aparezcan aunque todavía no tengan
-    una fila completa en Supabase.
-  */
+  container.innerHTML =
+    scheduleNumbers.map(number => {
 
-  container.innerHTML = scheduleNumbers.map(number => {
-    const info = MATCH_SCHEDULE[number];
+      const info =
+        MATCH_SCHEDULE[number];
 
-    const dbMatch = sorted.find(match => {
-      return getMatchNumber(match) === number;
-    });
+      const dbMatch =
+        allMatches.find(
+          match =>
+            getMatchNumber(match) ===
+            number
+        );
 
-    const played = dbMatch && isPlayed(dbMatch);
+      const played =
+        dbMatch &&
+        isPlayed(dbMatch);
 
-    return `
-      <div class="matchday">
+      return `
+        <div class="matchday">
 
-        <h3>
-          ${formatDate(info.date)}
-        </h3>
+          <h3>
+            ${formatDate(info.date)}
+          </h3>
 
-        <div class="match">
+          <div class="match">
 
-          <div>
-            <strong>PARTIDO ${number}</strong>
-            <br>
-            <small>
-              ${info.gender === "M" ? "HOMBRES" : "MUJERES"}
-            </small>
-          </div>
+            <div>
+              <strong>
+                PARTIDO ${number}
+              </strong>
 
-          <div>
-            <strong>${escapeHtml(info.home)}</strong>
-            <span style="margin:0 8px;color:#98a2b3;">vs</span>
-            <strong>${escapeHtml(info.away)}</strong>
-          </div>
+              <br>
 
-          <div class="score">
-            ${
-              played
-                ? `${dbMatch.home_score} - ${dbMatch.away_score}`
-                : "VS"
-            }
-          </div>
+              <small>
+                ${
+                  info.gender === "M"
+                    ? "HOMBRES"
+                    : "MUJERES"
+                }
+              </small>
+            </div>
 
-          <div class="edit">
-            ${
-              currentSession && dbMatch
-                ? `
-                  <button
-                    class="outline"
-                    onclick="editMatch('${dbMatch.id}')"
-                  >
-                    ✏️ Editar
-                  </button>
-                `
-                : ""
-            }
+            <div>
+              <strong>
+                ${escapeHtml(info.home)}
+              </strong>
+
+              <span
+                style="
+                  margin:0 8px;
+                  color:#98a2b3;
+                "
+              >
+                vs
+              </span>
+
+              <strong>
+                ${escapeHtml(info.away)}
+              </strong>
+            </div>
+
+            <div class="score">
+              ${
+                played
+                  ? `${dbMatch.home_score} - ${dbMatch.away_score}`
+                  : "VS"
+              }
+            </div>
+
+            <div class="edit">
+
+              ${
+                currentSession && dbMatch
+                  ? `
+                    <button
+                      class="outline"
+                      onclick="editMatch('${dbMatch.id}')"
+                    >
+                      ✏️ Editar
+                    </button>
+                  `
+                  : ""
+              }
+
+            </div>
+
           </div>
 
         </div>
-      </div>
-    `;
-  }).join("");
+      `;
+    }).join("");
 }
 
 /* =========================================================
-   EDITAR RESULTADO
+   EDITAR RESULTADOS
    ========================================================= */
 
 function editMatch(matchId) {
+
   if (!currentSession) {
-    alert("Debes iniciar sesión como organizador.");
+    alert(
+      "Debes iniciar sesión como organizador."
+    );
     return;
   }
 
-  const match = allMatches.find(
-    item => String(item.id) === String(matchId)
-  );
+  const match =
+    allMatches.find(
+      item =>
+        String(item.id) ===
+        String(matchId)
+    );
 
   if (!match) {
-    alert("No se encontró el partido.");
+    alert(
+      "No se encontró el partido."
+    );
     return;
   }
 
   selectedMatch = match;
 
-  const title = document.getElementById("editMatchTitle");
-  const homeScore = document.getElementById("homeScore");
-  const awayScore = document.getElementById("awayScore");
+  const title =
+    document.getElementById(
+      "editMatchTitle"
+    );
 
-  const home = getHomeTeam(match);
-  const away = getAwayTeam(match);
+  const homeScore =
+    document.getElementById(
+      "homeScore"
+    );
+
+  const awayScore =
+    document.getElementById(
+      "awayScore"
+    );
 
   if (title) {
-    title.textContent = `${home} vs ${away}`;
+    title.textContent =
+      `${getHomeTeam(match)} vs ${getAwayTeam(match)}`;
   }
 
   if (homeScore) {
     homeScore.value =
-      match.home_score !== null &&
-      match.home_score !== undefined
-        ? match.home_score
-        : "";
+      match.home_score ??
+      "";
   }
 
   if (awayScore) {
     awayScore.value =
-      match.away_score !== null &&
-      match.away_score !== undefined
-        ? match.away_score
-        : "";
+      match.away_score ??
+      "";
   }
 
   openModal("editModal");
 }
 
 async function saveMatch() {
-  if (!currentSession || !selectedMatch) return;
 
-  const homeInput = document.getElementById("homeScore");
-  const awayInput = document.getElementById("awayScore");
+  if (
+    !currentSession ||
+    !selectedMatch
+  ) {
+    return;
+  }
 
-  const homeScore = Number(homeInput?.value);
-  const awayScore = Number(awayInput?.value);
+  const homeScore =
+    Number(
+      document.getElementById(
+        "homeScore"
+      )?.value
+    );
+
+  const awayScore =
+    Number(
+      document.getElementById(
+        "awayScore"
+      )?.value
+    );
 
   if (
     !Number.isInteger(homeScore) ||
@@ -1019,18 +1153,25 @@ async function saveMatch() {
     homeScore < 0 ||
     awayScore < 0
   ) {
-    alert("Ingresa resultados válidos.");
+    alert(
+      "Ingresa resultados válidos."
+    );
     return;
   }
 
   try {
-    const { error } = await db
-      .from("matches")
-      .update({
-        home_score: homeScore,
-        away_score: awayScore
-      })
-      .eq("id", selectedMatch.id);
+
+    const { error } =
+      await db
+        .from("matches")
+        .update({
+          home_score: homeScore,
+          away_score: awayScore
+        })
+        .eq(
+          "id",
+          selectedMatch.id
+        );
 
     if (error) throw error;
 
@@ -1041,12 +1182,13 @@ async function saveMatch() {
     await refreshAll();
 
   } catch (error) {
-    console.error("Error guardando resultado:", error);
 
-    alert(
-      "No se pudo guardar el resultado.\n\n" +
-      error.message
+    console.error(
+      "Error guardando partido:",
+      error
     );
+
+    alert(error.message);
   }
 }
 
@@ -1055,225 +1197,355 @@ async function saveMatch() {
    ========================================================= */
 
 async function loadScorers() {
-  if (!db) return;
 
   try {
-    const { data, error } = await db
-      .from("scorers")
-      .select("*")
-      .order("goals", { ascending: false });
+
+    const { data, error } =
+      await db
+        .from("scorers")
+        .select("*")
+        .order(
+          "goals",
+          { ascending: false }
+        );
 
     if (error) throw error;
 
     allScorers = data || [];
 
   } catch (error) {
-    console.error("Error cargando goleadores:", error);
+
+    console.error(
+      "Error cargando goleadores:",
+      error
+    );
+
     allScorers = [];
   }
 }
 
 function renderScorers() {
-  const menBody = document.getElementById("menScorers");
-  const womenBody = document.getElementById("womenScorers");
 
-  const men = allScorers
-    .filter(s => String(s.gender || "").toUpperCase() === "M")
-    .sort((a, b) => Number(b.goals || 0) - Number(a.goals || 0));
+  const menBody =
+    document.getElementById(
+      "menScorers"
+    );
 
-  const women = allScorers
-    .filter(s => String(s.gender || "").toUpperCase() === "F")
-    .sort((a, b) => Number(b.goals || 0) - Number(a.goals || 0));
+  const womenBody =
+    document.getElementById(
+      "womenScorers"
+    );
+
+  const men =
+    allScorers
+      .filter(
+        s =>
+          String(
+            s.gender || ""
+          ).toUpperCase() === "M"
+      )
+      .sort(
+        (a, b) =>
+          Number(b.goals || 0) -
+          Number(a.goals || 0)
+      );
+
+  const women =
+    allScorers
+      .filter(
+        s =>
+          String(
+            s.gender || ""
+          ).toUpperCase() === "F"
+      )
+      .sort(
+        (a, b) =>
+          Number(b.goals || 0) -
+          Number(a.goals || 0)
+      );
 
   if (menBody) {
-    menBody.innerHTML = renderScorerRows(men);
+    menBody.innerHTML =
+      renderScorerRows(men);
   }
 
   if (womenBody) {
-    womenBody.innerHTML = renderScorerRows(women);
+    womenBody.innerHTML =
+      renderScorerRows(women);
   }
 }
 
 function renderScorerRows(scorers) {
+
   if (!scorers.length) {
     return `
       <tr>
-        <td colspan="5" class="empty">
+        <td
+          colspan="5"
+          class="empty"
+        >
           No hay goleadores registrados.
         </td>
       </tr>
     `;
   }
 
-  return scorers.map((scorer, index) => `
-    <tr>
-      <td class="rank">${index + 1}</td>
+  return scorers.map(
+    (scorer, index) => `
+      <tr>
 
-      <td>
-        <strong>${escapeHtml(scorer.player_name || scorer.name || "")}</strong>
-      </td>
+        <td class="rank">
+          ${index + 1}
+        </td>
 
-      <td>
-        ${escapeHtml(
-          normalizeTeam(scorer.team || scorer.team_name || "")
-        )}
-      </td>
+        <td>
+          <strong>
+            ${escapeHtml(
+              scorer.player_name ||
+              scorer.name ||
+              ""
+            )}
+          </strong>
+        </td>
 
-      <td class="pts">
-        ${Number(scorer.goals || 0)}
-      </td>
+        <td>
+          ${escapeHtml(
+            normalizeTeam(
+              scorer.team ||
+              scorer.team_name ||
+              ""
+            )
+          )}
+        </td>
 
-      ${
-        currentSession
-          ? `
-            <td>
-              <button
-                class="outline edit"
-                onclick="editScorer('${scorer.id}')"
-              >
-                ✏️
-              </button>
+        <td class="pts">
+          ${Number(
+            scorer.goals || 0
+          )}
+        </td>
 
-              <button
-                class="danger edit"
-                onclick="deleteScorer('${scorer.id}')"
-              >
-                🗑️
-              </button>
-            </td>
-          `
-          : ""
-      }
-    </tr>
-  `).join("");
+        ${
+          currentSession
+            ? `
+              <td>
+
+                <button
+                  class="outline edit"
+                  onclick="editScorer('${scorer.id}')"
+                >
+                  ✏️
+                </button>
+
+                <button
+                  class="danger edit"
+                  onclick="deleteScorer('${scorer.id}')"
+                >
+                  🗑️
+                </button>
+
+              </td>
+            `
+            : ""
+        }
+
+      </tr>
+    `
+  ).join("");
 }
 
-/* =========================================================
-   AGREGAR GOLEADOR
-   ========================================================= */
-
 async function addScorer() {
+
   if (!currentSession) return;
 
-  const name = prompt("Nombre del jugador:");
+  const name =
+    prompt(
+      "Nombre del jugador:"
+    );
+
   if (!name) return;
 
-  const team = prompt(
-    "Equipo:\n\n" +
-    [...MEN_A, ...MEN_B, ...WOMEN].join("\n")
-  );
+  const team =
+    prompt(
+      "Equipo:\n\n" +
+      ALL_TEAMS.join("\n")
+    );
 
   if (!team) return;
 
-  const normalizedTeam = normalizeTeam(team);
+  const normalized =
+    normalizeTeam(team);
 
-  if (![...MEN_A, ...MEN_B, ...WOMEN].includes(normalizedTeam)) {
-    alert("Ese equipo no existe.");
+  if (
+    !ALL_TEAMS.includes(
+      normalized
+    )
+  ) {
+    alert(
+      "Ese equipo no existe."
+    );
     return;
   }
 
-  const goalsInput = prompt("Número de goles:", "0");
-  if (goalsInput === null) return;
+  const goalsInput =
+    prompt(
+      "Número de goles:",
+      "0"
+    );
 
-  const goals = Number(goalsInput);
+  if (goalsInput === null) {
+    return;
+  }
 
-  if (!Number.isInteger(goals) || goals < 0) {
-    alert("Número de goles inválido.");
+  const goals =
+    Number(goalsInput);
+
+  if (
+    !Number.isInteger(goals) ||
+    goals < 0
+  ) {
+    alert(
+      "Número de goles inválido."
+    );
     return;
   }
 
   const gender =
-    [...MEN_A, ...MEN_B].includes(normalizedTeam)
+    [...MEN_A, ...MEN_B].includes(
+      normalized
+    )
       ? "M"
       : "F";
 
   try {
-    const { error } = await db
-      .from("scorers")
-      .insert({
-        player_name: name,
-        team: normalizedTeam,
-        goals,
-        gender
-      });
+
+    const { error } =
+      await db
+        .from("scorers")
+        .insert({
+          player_name: name,
+          team: normalized,
+          goals,
+          gender
+        });
 
     if (error) throw error;
 
     await refreshAll();
 
   } catch (error) {
-    console.error("Error agregando goleador:", error);
+
+    console.error(
+      "Error agregando goleador:",
+      error
+    );
 
     alert(error.message);
   }
 }
 
 async function editScorer(id) {
+
   if (!currentSession) return;
 
-  const scorer = allScorers.find(
-    item => String(item.id) === String(id)
-  );
+  const scorer =
+    allScorers.find(
+      item =>
+        String(item.id) ===
+        String(id)
+    );
 
   if (!scorer) return;
 
-  const name = prompt(
-    "Nombre del jugador:",
-    scorer.player_name || scorer.name || ""
-  );
+  const name =
+    prompt(
+      "Nombre del jugador:",
+      scorer.player_name ||
+      scorer.name ||
+      ""
+    );
 
   if (!name) return;
 
-  const goalsInput = prompt(
-    "Número de goles:",
-    scorer.goals || 0
-  );
+  const goalsInput =
+    prompt(
+      "Número de goles:",
+      scorer.goals || 0
+    );
 
-  if (goalsInput === null) return;
+  if (goalsInput === null) {
+    return;
+  }
 
-  const goals = Number(goalsInput);
+  const goals =
+    Number(goalsInput);
 
-  if (!Number.isInteger(goals) || goals < 0) {
-    alert("Número de goles inválido.");
+  if (
+    !Number.isInteger(goals) ||
+    goals < 0
+  ) {
+    alert(
+      "Número de goles inválido."
+    );
     return;
   }
 
   try {
-    const { error } = await db
-      .from("scorers")
-      .update({
-        player_name: name,
-        goals
-      })
-      .eq("id", id);
+
+    const { error } =
+      await db
+        .from("scorers")
+        .update({
+          player_name: name,
+          goals
+        })
+        .eq("id", id);
 
     if (error) throw error;
 
     await refreshAll();
 
   } catch (error) {
-    console.error("Error editando goleador:", error);
+
+    console.error(
+      "Error editando goleador:",
+      error
+    );
+
     alert(error.message);
   }
 }
 
 async function deleteScorer(id) {
+
   if (!currentSession) return;
 
-  if (!confirm("¿Eliminar este goleador?")) return;
+  if (
+    !confirm(
+      "¿Eliminar este goleador?"
+    )
+  ) {
+    return;
+  }
 
   try {
-    const { error } = await db
-      .from("scorers")
-      .delete()
-      .eq("id", id);
+
+    const { error } =
+      await db
+        .from("scorers")
+        .delete()
+        .eq("id", id);
 
     if (error) throw error;
 
     await refreshAll();
 
   } catch (error) {
-    console.error("Error eliminando goleador:", error);
+
+    console.error(
+      "Error eliminando goleador:",
+      error
+    );
+
     alert(error.message);
   }
 }
@@ -1283,99 +1555,144 @@ async function deleteScorer(id) {
    ========================================================= */
 
 async function loadCleanliness() {
-  if (!db) return;
 
   try {
-    const { data, error } = await db
-      .from("cleanliness_scores")
-      .select("*");
+
+    const { data, error } =
+      await db
+        .from("cleanliness_scores")
+        .select("*");
 
     if (error) throw error;
 
     allCleanliness = data || [];
 
   } catch (error) {
-    console.error("Error cargando grado:", error);
+
+    console.error(
+      "Error cargando grado:",
+      error
+    );
+
     allCleanliness = [];
   }
 }
 
 function renderCleanliness() {
-  const body = document.getElementById("cleanlinessTable");
+
+  const body =
+    document.getElementById(
+      "cleanlinessTable"
+    );
 
   if (!body) return;
 
   if (!allCleanliness.length) {
+
     body.innerHTML = `
       <tr>
-        <td colspan="5" class="empty">
+        <td
+          colspan="5"
+          class="empty"
+        >
           No hay datos registrados.
         </td>
       </tr>
     `;
+
     return;
   }
 
-  const sorted = [...allCleanliness].sort((a, b) => {
-    return Number(b.points || b.score || 0) -
-           Number(a.points || a.score || 0);
-  });
+  const sorted =
+    [...allCleanliness].sort(
+      (a, b) =>
+        Number(
+          b.points ??
+          b.score ??
+          b.cleanliness_score ??
+          0
+        ) -
+        Number(
+          a.points ??
+          a.score ??
+          a.cleanliness_score ??
+          0
+        )
+    );
 
-  body.innerHTML = sorted.map((row, index) => {
-    const grade =
-      row.grade ||
-      row.grado ||
-      row.team ||
-      row.name ||
-      "";
+  body.innerHTML =
+    sorted.map(
+      (row, index) => {
 
-    const points =
-      row.points ??
-      row.score ??
-      row.cleanliness_score ??
-      0;
+        const grade =
+          row.grade ||
+          row.grado ||
+          row.team ||
+          row.name ||
+          "";
 
-    return `
-      <tr>
-        <td class="rank">${index + 1}</td>
+        const points =
+          row.points ??
+          row.score ??
+          row.cleanliness_score ??
+          0;
 
-        <td>
-          <strong>${escapeHtml(grade)}</strong>
-        </td>
+        return `
+          <tr>
 
-        <td class="pts">
-          ${Number(points)}
-        </td>
+            <td class="rank">
+              ${index + 1}
+            </td>
 
-        <td>
-          ${escapeHtml(row.note || row.observation || "")}
-        </td>
+            <td>
+              <strong>
+                ${escapeHtml(grade)}
+              </strong>
+            </td>
 
-        ${
-          currentSession
-            ? `
-              <td>
-                <button
-                  class="outline edit"
-                  onclick="editCleanliness('${row.id}')"
-                >
-                  ✏️
-                </button>
-              </td>
-            `
-            : ""
-        }
-      </tr>
-    `;
-  }).join("");
+            <td class="pts">
+              ${Number(points)}
+            </td>
+
+            <td>
+              ${escapeHtml(
+                row.note ||
+                row.observation ||
+                ""
+              )}
+            </td>
+
+            ${
+              currentSession
+                ? `
+                  <td>
+                    <button
+                      class="outline edit"
+                      onclick="editCleanliness('${row.id}')"
+                    >
+                      ✏️
+                    </button>
+                  </td>
+                `
+                : ""
+            }
+
+          </tr>
+        `;
+      }
+    ).join("");
 }
 
 async function editCleanliness(id) {
+
   if (!currentSession) return;
 
-  const row = allCleanliness.find(
-    item => String(item.id) === String(id)
-  );
+  const row =
+    allCleanliness.find(
+      item =>
+        String(item.id) ===
+        String(id)
+    );
 
   if (!row) return;
 
@@ -1385,17 +1702,21 @@ async function editCleanliness(id) {
     row.cleanliness_score ??
     0;
 
-  const value = prompt(
-    "Puntos de grado:",
-    current
-  );
+  const value =
+    prompt(
+      "Puntos de grado:",
+      current
+    );
 
   if (value === null) return;
 
-  const points = Number(value);
+  const points =
+    Number(value);
 
   if (!Number.isFinite(points)) {
-    alert("Ingresa un número válido.");
+    alert(
+      "Ingresa un número válido."
+    );
     return;
   }
 
@@ -1403,26 +1724,39 @@ async function editCleanliness(id) {
 
   if (row.points !== undefined) {
     column = "points";
-  } else if (row.score !== undefined) {
+  } else if (
+    row.score !== undefined
+  ) {
     column = "score";
-  } else if (row.cleanliness_score !== undefined) {
+  } else if (
+    row.cleanliness_score !== undefined
+  ) {
     column = "cleanliness_score";
   }
 
   try {
-    const { error } = await db
-      .from("cleanliness_scores")
-      .update({
-        [column]: points
-      })
-      .eq("id", id);
+
+    const { error } =
+      await db
+        .from(
+          "cleanliness_scores"
+        )
+        .update({
+          [column]: points
+        })
+        .eq("id", id);
 
     if (error) throw error;
 
     await refreshAll();
 
   } catch (error) {
-    console.error("Error editando grado:", error);
+
+    console.error(
+      "Error editando grado:",
+      error
+    );
+
     alert(error.message);
   }
 }
@@ -1432,220 +1766,292 @@ async function editCleanliness(id) {
    ========================================================= */
 
 async function loadSanctions() {
-  if (!db) return;
 
   try {
-    const { data, error } = await db
-      .from("sanctions")
-      .select("*")
-      .order("date", { ascending: false });
+
+    const { data, error } =
+      await db
+        .from("sanctions")
+        .select("*")
+        .order(
+          "date",
+          { ascending: false }
+        );
 
     if (error) throw error;
 
     allSanctions = data || [];
 
   } catch (error) {
-    console.error("Error cargando sanciones:", error);
+
+    console.error(
+      "Error cargando sanciones:",
+      error
+    );
+
     allSanctions = [];
   }
 }
 
 function renderSanctions() {
-  const container = document.getElementById("sanctions");
+
+  const container =
+    document.getElementById(
+      "sanctions"
+    );
 
   if (!container) return;
 
   if (!allSanctions.length) {
+
     container.innerHTML = `
       <div class="empty">
         No hay sanciones registradas.
       </div>
     `;
+
     return;
   }
 
-  container.innerHTML = allSanctions.map(sanction => `
-    <div class="sanction">
+  container.innerHTML =
+    allSanctions.map(
+      sanction => `
 
-      <div>
-        <strong>${escapeHtml(
-          sanction.student ||
-          sanction.player ||
-          sanction.name ||
-          ""
-        )}</strong>
-      </div>
+        <div class="sanction">
 
-      <div>
-        ${escapeHtml(
-          normalizeTeam(
-            sanction.team ||
-            sanction.team_name ||
-            ""
-          )
-        )}
-      </div>
+          <div>
+            <strong>
+              ${escapeHtml(
+                sanction.student ||
+                sanction.player ||
+                sanction.name ||
+                ""
+              )}
+            </strong>
+          </div>
 
-      <div>
-        ${escapeHtml(sanction.date || "")}
-      </div>
+          <div>
+            ${escapeHtml(
+              normalizeTeam(
+                sanction.team ||
+                sanction.team_name ||
+                ""
+              )
+            )}
+          </div>
 
-      <div>
-        ${escapeHtml(
-          sanction.reason ||
-          sanction.description ||
-          ""
-        )}
-      </div>
+          <div>
+            ${escapeHtml(
+              sanction.date || ""
+            )}
+          </div>
 
-      ${
-        currentSession
-          ? `
-            <div>
-              <button
-                class="outline edit"
-                onclick="editSanction('${sanction.id}')"
-              >
-                ✏️
-              </button>
+          <div>
+            ${escapeHtml(
+              sanction.reason ||
+              sanction.description ||
+              ""
+            )}
+          </div>
 
-              <button
-                class="danger edit"
-                onclick="deleteSanction('${sanction.id}')"
-              >
-                🗑️
-              </button>
-            </div>
-          `
-          : ""
-      }
+          ${
+            currentSession
+              ? `
+                <div>
 
-    </div>
-  `).join("");
+                  <button
+                    class="outline edit"
+                    onclick="editSanction('${sanction.id}')"
+                  >
+                    ✏️
+                  </button>
+
+                  <button
+                    class="danger edit"
+                    onclick="deleteSanction('${sanction.id}')"
+                  >
+                    🗑️
+                  </button>
+
+                </div>
+              `
+              : ""
+          }
+
+        </div>
+      `
+    ).join("");
 }
 
-/* =========================================================
-   AGREGAR SANCIÓN
-   ========================================================= */
-
 async function addSanction() {
+
   if (!currentSession) return;
 
-  const student = prompt("Nombre del estudiante:");
+  const student =
+    prompt(
+      "Nombre del estudiante:"
+    );
+
   if (!student) return;
 
-  const team = prompt(
-    "Equipo:\n\n" +
-    [...MEN_A, ...MEN_B, ...WOMEN].join("\n")
-  );
+  const team =
+    prompt(
+      "Equipo:\n\n" +
+      ALL_TEAMS.join("\n")
+    );
 
   if (!team) return;
 
-  const reason = prompt("Motivo de la sanción:");
+  const reason =
+    prompt(
+      "Motivo de la sanción:"
+    );
+
   if (!reason) return;
 
-  const date = prompt(
-    "Fecha:",
-    new Date().toISOString().slice(0, 10)
-  );
+  const date =
+    prompt(
+      "Fecha:",
+      new Date()
+        .toISOString()
+        .slice(0, 10)
+    );
 
   if (!date) return;
 
   try {
-    const { error } = await db
-      .from("sanctions")
-      .insert({
-        student,
-        team: normalizeTeam(team),
-        reason,
-        date
-      });
+
+    const { error } =
+      await db
+        .from("sanctions")
+        .insert({
+          student,
+          team: normalizeTeam(team),
+          reason,
+          date
+        });
 
     if (error) throw error;
 
     await refreshAll();
 
   } catch (error) {
-    console.error("Error agregando sanción:", error);
+
+    console.error(
+      "Error agregando sanción:",
+      error
+    );
+
     alert(error.message);
   }
 }
 
 async function editSanction(id) {
+
   if (!currentSession) return;
 
-  const sanction = allSanctions.find(
-    item => String(item.id) === String(id)
-  );
+  const sanction =
+    allSanctions.find(
+      item =>
+        String(item.id) ===
+        String(id)
+    );
 
   if (!sanction) return;
 
-  const student = prompt(
-    "Nombre del estudiante:",
-    sanction.student || ""
-  );
+  const student =
+    prompt(
+      "Nombre del estudiante:",
+      sanction.student || ""
+    );
 
   if (!student) return;
 
-  const team = prompt(
-    "Equipo:",
-    sanction.team || ""
-  );
+  const team =
+    prompt(
+      "Equipo:",
+      sanction.team || ""
+    );
 
   if (!team) return;
 
-  const reason = prompt(
-    "Motivo:",
-    sanction.reason || sanction.description || ""
-  );
+  const reason =
+    prompt(
+      "Motivo:",
+      sanction.reason ||
+      sanction.description ||
+      ""
+    );
 
   if (!reason) return;
 
-  const date = prompt(
-    "Fecha:",
-    sanction.date || ""
-  );
+  const date =
+    prompt(
+      "Fecha:",
+      sanction.date || ""
+    );
 
   if (!date) return;
 
   try {
-    const { error } = await db
-      .from("sanctions")
-      .update({
-        student,
-        team: normalizeTeam(team),
-        reason,
-        date
-      })
-      .eq("id", id);
+
+    const { error } =
+      await db
+        .from("sanctions")
+        .update({
+          student,
+          team: normalizeTeam(team),
+          reason,
+          date
+        })
+        .eq("id", id);
 
     if (error) throw error;
 
     await refreshAll();
 
   } catch (error) {
-    console.error("Error editando sanción:", error);
+
+    console.error(
+      "Error editando sanción:",
+      error
+    );
+
     alert(error.message);
   }
 }
 
 async function deleteSanction(id) {
+
   if (!currentSession) return;
 
-  if (!confirm("¿Eliminar esta sanción?")) return;
+  if (
+    !confirm(
+      "¿Eliminar esta sanción?"
+    )
+  ) {
+    return;
+  }
 
   try {
-    const { error } = await db
-      .from("sanctions")
-      .delete()
-      .eq("id", id);
+
+    const { error } =
+      await db
+        .from("sanctions")
+        .delete()
+        .eq("id", id);
 
     if (error) throw error;
 
     await refreshAll();
 
   } catch (error) {
-    console.error("Error eliminando sanción:", error);
+
+    console.error(
+      "Error eliminando sanción:",
+      error
+    );
+
     alert(error.message);
   }
 }
@@ -1663,6 +2069,8 @@ window.logout = logout;
 window.editMatch = editMatch;
 window.saveMatch = saveMatch;
 
+window.editTeamPoints = editTeamPoints;
+
 window.addScorer = addScorer;
 window.editScorer = editScorer;
 window.deleteScorer = deleteScorer;
@@ -1673,6 +2081,6 @@ window.deleteSanction = deleteSanction;
 
 window.editCleanliness = editCleanliness;
 
-window.editTeamPoints = editTeamPoints;
-
-console.log("INTERAULAS: funciones globales cargadas correctamente.");
+console.log(
+  "INTERAULAS: funciones globales cargadas correctamente."
+);
