@@ -52,7 +52,6 @@ const MATCH_DATES = {
   6: "2026-09-17",
   7: "2026-09-18",
 
-  // IMPORTANTE:
   // Partido 9 = 22 de septiembre
   // Partido 8 = 23 de septiembre
   9: "2026-09-22",
@@ -140,24 +139,32 @@ document.addEventListener(
 function setupButtons() {
 
   const loginButton =
-    document.getElementById("login-button");
+    document.getElementById(
+      "login-button"
+    );
 
   if (loginButton) {
+
     loginButton.addEventListener(
       "click",
       login
     );
+
   }
 
 
   const logoutButton =
-    document.getElementById("logout-button");
+    document.getElementById(
+      "logout-button"
+    );
 
   if (logoutButton) {
+
     logoutButton.addEventListener(
       "click",
       logout
     );
+
   }
 
 }
@@ -208,7 +215,9 @@ async function login() {
     !emailInput ||
     !passwordInput
   ) {
+
     return;
+
   }
 
 
@@ -219,13 +228,17 @@ async function login() {
     passwordInput.value;
 
 
-  if (!email || !password) {
+  if (
+    !email ||
+    !password
+  ) {
 
     alert(
       "Ingresa tu correo y contraseña."
     );
 
     return;
+
   }
 
 
@@ -243,12 +256,12 @@ async function login() {
     );
 
     return;
+
   }
 
 
   currentSession =
     result.data.session;
-
 
   updateAuthUI();
 
@@ -286,25 +299,33 @@ function updateAuthUI() {
   if (currentSession) {
 
     if (loginArea) {
+
       loginArea.style.display =
         "none";
+
     }
 
     if (adminArea) {
+
       adminArea.style.display =
         "block";
+
     }
 
   } else {
 
     if (loginArea) {
+
       loginArea.style.display =
         "block";
+
     }
 
     if (adminArea) {
+
       adminArea.style.display =
         "none";
+
     }
 
   }
@@ -336,7 +357,9 @@ async function refreshAll() {
 function normalizeTeam(team) {
 
   if (!team) {
+
     return "";
+
   }
 
 
@@ -412,6 +435,7 @@ async function loadMatches() {
     );
 
     return;
+
   }
 
 
@@ -439,7 +463,9 @@ function getMatchNumber(match) {
     match.day !== null
   ) {
 
-    return Number(match.day);
+    return Number(
+      match.day
+    );
 
   }
 
@@ -479,12 +505,16 @@ function getMatchDate(match) {
 
 
   if (match.date) {
+
     return match.date;
+
   }
 
 
   if (match.match_date) {
+
     return match.match_date;
+
   }
 
 
@@ -496,13 +526,16 @@ function getMatchDate(match) {
 function formatDate(dateString) {
 
   if (!dateString) {
+
     return "";
+
   }
 
 
   const date =
     new Date(
-      dateString + "T12:00:00"
+      dateString +
+      "T12:00:00"
     );
 
 
@@ -547,10 +580,12 @@ function sortMatchesByDate(matches) {
 
       return (
         new Date(
-          dateA + "T12:00:00"
+          dateA +
+          "T12:00:00"
         ) -
         new Date(
-          dateB + "T12:00:00"
+          dateB +
+          "T12:00:00"
         )
       );
 
@@ -696,7 +731,9 @@ function renderMatches(matches) {
 
     menContainer.innerHTML =
       menMatches
-        .map(matchCardHTML)
+        .map(
+          matchCardHTML
+        )
         .join("");
 
   }
@@ -706,7 +743,9 @@ function renderMatches(matches) {
 
     womenContainer.innerHTML =
       womenMatches
-        .map(matchCardHTML)
+        .map(
+          matchCardHTML
+        )
         .join("");
 
   }
@@ -747,7 +786,8 @@ function matchCardHTML(match) {
     getMatchDate(match);
 
 
-  let score = "VS";
+  let score =
+    "VS";
 
 
   if (
@@ -763,7 +803,8 @@ function matchCardHTML(match) {
   }
 
 
-  let adminButton = "";
+  let adminButton =
+    "";
 
 
   if (currentSession) {
@@ -847,7 +888,9 @@ function renderNext(matches) {
 
 
   if (!container) {
+
     return;
+
   }
 
 
@@ -873,7 +916,9 @@ function renderNext(matches) {
 
 
           if (!dateString) {
+
             return false;
+
           }
 
 
@@ -911,6 +956,7 @@ function renderNext(matches) {
     `;
 
     return;
+
   }
 
 
@@ -989,7 +1035,9 @@ function renderNext(matches) {
 async function editMatch(id) {
 
   if (!currentSession) {
+
     return;
+
   }
 
 
@@ -1008,6 +1056,7 @@ async function editMatch(id) {
     );
 
     return;
+
   }
 
 
@@ -1152,6 +1201,7 @@ async function saveMatch() {
     );
 
     return;
+
   }
 
 
@@ -1170,6 +1220,7 @@ async function saveMatch() {
     );
 
     return;
+
   }
 
 
@@ -1196,6 +1247,7 @@ async function saveMatch() {
     );
 
     return;
+
   }
 
 
@@ -1338,7 +1390,9 @@ function createStandings(
     function (match) {
 
       if (!hasScore(match)) {
+
         return;
+
       }
 
 
@@ -1616,6 +1670,7 @@ async function loadSanctions() {
     );
 
     return;
+
   }
 
 
@@ -1640,7 +1695,9 @@ function renderSanctions(
 
 
   if (!container) {
+
     return;
+
   }
 
 
@@ -1653,6 +1710,7 @@ function renderSanctions(
     `;
 
     return;
+
   }
 
 
@@ -1661,7 +1719,8 @@ function renderSanctions(
       .map(
         function (sanction) {
 
-          let buttons = "";
+          let buttons =
+            "";
 
 
           if (currentSession) {
@@ -1754,7 +1813,9 @@ function renderSanctions(
 function openSanctionModal() {
 
   if (!currentSession) {
+
     return;
+
   }
 
 
@@ -1781,7 +1842,9 @@ function openSanctionModal() {
 async function addSanction() {
 
   if (!currentSession) {
+
     return;
+
   }
 
 
@@ -1819,6 +1882,7 @@ async function addSanction() {
     );
 
     return;
+
   }
 
 
@@ -1827,10 +1891,15 @@ async function addSanction() {
       .from("sanctions")
       .insert([
         {
-          student: student,
+          student:
+            student,
+
           team:
             team || null,
-          reason: reason,
+
+          reason:
+            reason,
+
           date:
             date || null
         }
@@ -1844,6 +1913,7 @@ async function addSanction() {
     );
 
     return;
+
   }
 
 
@@ -1864,7 +1934,9 @@ async function addSanction() {
 async function editSanction(id) {
 
   if (!currentSession) {
+
     return;
+
   }
 
 
@@ -1883,6 +1955,7 @@ async function editSanction(id) {
     );
 
     return;
+
   }
 
 
@@ -2024,6 +2097,7 @@ async function saveSanction() {
     );
 
     return;
+
   }
 
 
@@ -2031,10 +2105,15 @@ async function saveSanction() {
     await db
       .from("sanctions")
       .update({
-        student: student,
+        student:
+          student,
+
         team:
           team || null,
-        reason: reason,
+
+        reason:
+          reason,
+
         date:
           date || null
       })
@@ -2051,6 +2130,7 @@ async function saveSanction() {
     );
 
     return;
+
   }
 
 
@@ -2075,7 +2155,9 @@ async function saveSanction() {
 async function deleteSanction(id) {
 
   if (!currentSession) {
+
     return;
+
   }
 
 
@@ -2086,7 +2168,9 @@ async function deleteSanction(id) {
 
 
   if (!confirmed) {
+
     return;
+
   }
 
 
@@ -2094,7 +2178,10 @@ async function deleteSanction(id) {
     await db
       .from("sanctions")
       .delete()
-      .eq("id", id);
+      .eq(
+        "id",
+        id
+      );
 
 
   if (result.error) {
@@ -2104,6 +2191,7 @@ async function deleteSanction(id) {
     );
 
     return;
+
   }
 
 
@@ -2132,6 +2220,7 @@ async function loadScorers() {
     );
 
     return;
+
   }
 
 
@@ -2299,7 +2388,8 @@ function scorerTableHTML(
 
             const team =
               normalizeTeam(
-                scorer.team || ""
+                scorer.team ||
+                ""
               );
 
 
@@ -2309,7 +2399,8 @@ function scorerTableHTML(
               0;
 
 
-            let actions = "";
+            let actions =
+              "";
 
 
             if (currentSession) {
@@ -2380,7 +2471,9 @@ function scorerTableHTML(
 function openScorerModal() {
 
   if (!currentSession) {
+
     return;
+
   }
 
 
@@ -2407,7 +2500,9 @@ function openScorerModal() {
 async function addScorer() {
 
   if (!currentSession) {
+
     return;
+
   }
 
 
@@ -2433,7 +2528,8 @@ async function addScorer() {
     Number(
       document.getElementById(
         "scorer-goals"
-      )?.value || 0
+      )?.value ||
+      0
     );
 
 
@@ -2447,6 +2543,7 @@ async function addScorer() {
     );
 
     return;
+
   }
 
 
@@ -2459,7 +2556,9 @@ async function addScorer() {
             player,
 
           team:
-            normalizeTeam(team),
+            normalizeTeam(
+              team
+            ),
 
           gender:
             gender || null,
@@ -2477,6 +2576,7 @@ async function addScorer() {
     );
 
     return;
+
   }
 
 
@@ -2497,7 +2597,9 @@ async function addScorer() {
 async function editScorer(id) {
 
   if (!currentSession) {
+
     return;
+
   }
 
 
@@ -2516,6 +2618,7 @@ async function editScorer(id) {
     );
 
     return;
+
   }
 
 
@@ -2565,7 +2668,8 @@ async function editScorer(id) {
 
     teamInput.value =
       normalizeTeam(
-        scorer.team || ""
+        scorer.team ||
+        ""
       );
 
   }
@@ -2644,7 +2748,8 @@ async function saveScorer() {
     Number(
       document.getElementById(
         "scorer-goals"
-      )?.value || 0
+      )?.value ||
+      0
     );
 
 
@@ -2658,6 +2763,7 @@ async function saveScorer() {
     );
 
     return;
+
   }
 
 
@@ -2669,7 +2775,9 @@ async function saveScorer() {
           player,
 
         team:
-          normalizeTeam(team),
+          normalizeTeam(
+            team
+          ),
 
         gender:
           gender || null,
@@ -2690,6 +2798,7 @@ async function saveScorer() {
     );
 
     return;
+
   }
 
 
@@ -2714,7 +2823,9 @@ async function saveScorer() {
 async function deleteScorer(id) {
 
   if (!currentSession) {
+
     return;
+
   }
 
 
@@ -2725,7 +2836,9 @@ async function deleteScorer(id) {
 
 
   if (!confirmed) {
+
     return;
+
   }
 
 
@@ -2733,7 +2846,10 @@ async function deleteScorer(id) {
     await db
       .from("scorers")
       .delete()
-      .eq("id", id);
+      .eq(
+        "id",
+        id
+      );
 
 
   if (result.error) {
@@ -2743,6 +2859,7 @@ async function deleteScorer(id) {
     );
 
     return;
+
   }
 
 
@@ -2771,6 +2888,7 @@ async function loadCleanliness() {
     );
 
     return;
+
   }
 
 
@@ -2802,7 +2920,9 @@ function renderCleanliness(
 
 
   if (!container) {
+
     return;
+
   }
 
 
@@ -2815,6 +2935,7 @@ function renderCleanliness(
     `;
 
     return;
+
   }
 
 
@@ -2868,15 +2989,17 @@ function renderCleanliness(
             0;
 
 
-          let action = "";
+          let action =
+            "";
 
 
           if (currentSession) {
 
             action = `
               <button
+                type="button"
                 class="admin-button"
-                onclick="editTeamPoints(${row.id})">
+                onclick="window.editTeamPoints(${Number(row.id)})">
                 ✏️
               </button>
             `;
@@ -2898,7 +3021,9 @@ function renderCleanliness(
               </strong>
 
               <span>
-                ${score}
+                ${escapeHTML(
+                  String(score)
+                )}
               </span>
 
               ${action}
@@ -2928,6 +3053,22 @@ async function editTeamPoints(
     );
 
     return;
+
+  }
+
+
+  const numericId =
+    Number(id);
+
+
+  if (!Number.isFinite(numericId)) {
+
+    alert(
+      "ID de grado no válido."
+    );
+
+    return;
+
   }
 
 
@@ -2935,7 +3076,10 @@ async function editTeamPoints(
     await db
       .from("cleanliness_scores")
       .select("*")
-      .eq("id", id)
+      .eq(
+        "id",
+        numericId
+      )
       .single();
 
 
@@ -2951,6 +3095,7 @@ async function editTeamPoints(
     );
 
     return;
+
   }
 
 
@@ -2981,7 +3126,9 @@ async function editTeamPoints(
 
 
   const points =
-    Number(newPoints);
+    Number(
+      newPoints
+    );
 
 
   if (
@@ -2993,6 +3140,7 @@ async function editTeamPoints(
     );
 
     return;
+
   }
 
 
@@ -3030,16 +3178,19 @@ async function editTeamPoints(
     );
 
     return;
+
   }
 
 
   const updateResult =
     await db
       .from("cleanliness_scores")
-      .update(updateData)
+      .update(
+        updateData
+      )
       .eq(
         "id",
-        id
+        numericId
       );
 
 
@@ -3055,6 +3206,7 @@ async function editTeamPoints(
     );
 
     return;
+
   }
 
 
@@ -3071,7 +3223,9 @@ async function editCleanliness(
   id
 ) {
 
-  return editTeamPoints(id);
+  return editTeamPoints(
+    id
+  );
 
 }
 
@@ -3088,6 +3242,7 @@ async function saveCleanliness() {
   ) {
 
     return;
+
   }
 
 
@@ -3098,7 +3253,9 @@ async function saveCleanliness() {
 
 
   if (!scoreInput) {
+
     return;
+
   }
 
 
@@ -3117,6 +3274,7 @@ async function saveCleanliness() {
     );
 
     return;
+
   }
 
 
@@ -3124,7 +3282,8 @@ async function saveCleanliness() {
     await db
       .from("cleanliness_scores")
       .update({
-        score: score
+        score:
+          score
       })
       .eq(
         "id",
@@ -3139,6 +3298,7 @@ async function saveCleanliness() {
     );
 
     return;
+
   }
 
 
@@ -3165,7 +3325,9 @@ function closeModal(
 ) {
 
   const modal =
-    document.getElementById(id);
+    document.getElementById(
+      id
+    );
 
 
   if (modal) {
@@ -3213,6 +3375,7 @@ function escapeHTML(
 
 // ============================================================
 // FUNCIONES GLOBALES
+// IMPORTANTE: DEBEN ESTAR AL FINAL
 // ============================================================
 
 window.refreshAll =
@@ -3271,3 +3434,17 @@ window.saveCleanliness =
 
 window.closeModal =
   closeModal;
+
+
+// ============================================================
+// VERIFICACIÓN
+// ============================================================
+
+console.log(
+  "Interaulas 2026 app.js cargado correctamente."
+);
+
+console.log(
+  "editTeamPoints:",
+  typeof window.editTeamPoints
+);
