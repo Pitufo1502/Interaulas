@@ -1,1 +1,697 @@
-*{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,-apple-system,sans-serif;background:#f5f7fb;color:#101828}header{height:72px;background:#fff;border-bottom:1px solid #e5e7eb;display:flex;align-items:center;justify-content:space-between;padding:0 6%;position:sticky;top:0;z-index:5}.brand{display:flex;gap:10px;align-items:center}.brand span{font-size:28px}.brand strong{display:block;letter-spacing:1px}.brand small{color:#667085}nav{display:flex;gap:20px;align-items:center}nav a{text-decoration:none;color:#344054;font-weight:600;font-size:14px}button{border:0;border-radius:10px;padding:10px 15px;font-weight:700;cursor:pointer}.outline{background:#fff;border:1px solid #d0d5dd}.primary{background:#111827;color:#fff}.danger{background:#fee4e2;color:#b42318}.hidden{display:none!important}main{max-width:1200px;margin:auto;padding:30px 20px 70px}.hero{display:grid;grid-template-columns:1.5fr 1fr;gap:24px;padding:55px 0}.hero h1{font-size:58px;line-height:1;margin:10px 0}.hero h1 span{color:#667085}.hero p{font-size:18px;color:#667085}.eyebrow{font-size:12px!important;font-weight:800;letter-spacing:1.5px;color:#667085!important}.hero-card{background:#111827;color:#fff;border-radius:20px;padding:28px;display:flex;align-items:center;min-height:170px}.section-title{display:flex;justify-content:space-between;align-items:end;margin:35px 0 15px}.section-title h2{margin:5px 0;font-size:30px}.badge{background:#eef2f6;padding:8px 12px;border-radius:999px;font-size:12px;font-weight:700}.tables-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}.card{background:#fff;border:1px solid #e4e7ec;border-radius:16px;overflow:hidden;margin-bottom:18px}.card h3{padding:18px;margin:0;border-bottom:1px solid #eaecf0}.table-wrap{overflow:auto}table{width:100%;border-collapse:collapse;min-width:620px}th,td{padding:11px 12px;border-bottom:1px solid #f0f2f5;text-align:center;font-size:13px}th:first-child,td:first-child,th:nth-child(2),td:nth-child(2){text-align:left}th{font-size:11px;color:#667085;background:#fafafa}.rank{font-weight:800}.pts{font-weight:900}.matchday{background:#fff;border:1px solid #e4e7ec;border-radius:14px;margin:10px 0;overflow:hidden}.matchday h3{margin:0;padding:14px 18px;background:#fafafa}.match{display:grid;grid-template-columns:80px 1fr 110px 120px;align-items:center;padding:14px 18px;border-top:1px solid #f0f2f5}.score{font-size:20px;font-weight:900;text-align:center}.edit{font-size:12px}.sanction{display:grid;grid-template-columns:1fr 1fr 1fr 2fr 100px;gap:12px;align-items:center;background:#fff;border:1px solid #e4e7ec;border-radius:12px;padding:14px;margin:8px 0}.modal{position:fixed;inset:0;background:#0008;display:flex;align-items:center;justify-content:center;z-index:20}.modal-box{background:#fff;width:min(440px,92vw);padding:28px;border-radius:18px;position:relative}.close{position:absolute;right:15px;top:12px;background:transparent;font-size:25px}.modal-box input,.modal-box select,.modal-box textarea{width:100%;padding:11px;margin:7px 0;border:1px solid #d0d5dd;border-radius:9px;font:inherit}.msg{font-size:13px;color:#b42318}.empty{padding:25px;background:#fff;border:1px dashed #d0d5dd;border-radius:12px;color:#667085}footer{text-align:center;color:#98a2b3;padding:25px;font-size:12px}@media(max-width:800px){nav a{display:none}.hero{grid-template-columns:1fr}.hero h1{font-size:43px}.tables-grid{grid-template-columns:1fr}.match{grid-template-columns:55px 1fr 70px}.match .edit{display:none}.sanction{grid-template-columns:1fr 1fr}.sanction>*:last-child{grid-column:1/-1}}
+/* ============================================================
+   INTERAULAS 2026
+   Colegio Interamericano de Guatemala
+   ============================================================ */
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: #f5f7fb;
+  color: #101828;
+}
+
+/* ============================================================
+   HEADER
+   ============================================================ */
+
+header {
+  height: 72px;
+  background: #ffffff;
+  border-bottom: 1px solid #e5e7eb;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 6%;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+.brand {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  min-width: 180px;
+}
+
+.brand span {
+  font-size: 28px;
+}
+
+.brand strong {
+  display: block;
+  letter-spacing: 1px;
+  font-size: 15px;
+}
+
+.brand small {
+  color: #667085;
+  font-size: 11px;
+}
+
+nav {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+}
+
+nav a {
+  text-decoration: none;
+  color: #344054;
+  font-weight: 600;
+  font-size: 14px;
+  transition: 0.2s;
+}
+
+nav a:hover {
+  color: #111827;
+}
+
+button {
+  border: 0;
+  border-radius: 10px;
+  padding: 10px 15px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  transition: 0.2s;
+}
+
+button:hover {
+  transform: translateY(-1px);
+}
+
+.outline {
+  background: #fff;
+  border: 1px solid #d0d5dd;
+  color: #101828;
+}
+
+.primary {
+  background: #111827;
+  color: #fff;
+}
+
+.primary:hover {
+  background: #1f2937;
+}
+
+.danger {
+  background: #fee4e2;
+  color: #b42318;
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* ============================================================
+   MAIN
+   ============================================================ */
+
+main {
+  max-width: 1200px;
+  margin: auto;
+  padding: 30px 20px 70px;
+}
+
+/* ============================================================
+   HERO
+   ============================================================ */
+
+.hero {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr;
+  gap: 24px;
+  padding: 55px 0;
+  align-items: center;
+}
+
+.hero h1 {
+  font-size: 58px;
+  line-height: 1;
+  margin: 10px 0;
+  letter-spacing: -2px;
+}
+
+.hero h1 span {
+  color: #667085;
+}
+
+.hero p {
+  font-size: 18px;
+  color: #667085;
+  line-height: 1.6;
+}
+
+.eyebrow {
+  font-size: 12px !important;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  color: #667085 !important;
+}
+
+.hero-card {
+  background: #111827;
+  color: #fff;
+  border-radius: 20px;
+  padding: 28px;
+  min-height: 190px;
+  display: flex;
+  align-items: center;
+  box-shadow: 0 15px 35px rgba(16, 24, 40, 0.12);
+}
+
+.hero-card strong {
+  font-size: 25px;
+}
+
+/* ============================================================
+   SECTIONS
+   ============================================================ */
+
+section {
+  scroll-margin-top: 90px;
+}
+
+.section-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  margin: 45px 0 18px;
+  gap: 15px;
+}
+
+.section-title h2 {
+  margin: 5px 0;
+  font-size: 30px;
+  letter-spacing: -0.5px;
+}
+
+.section-title p {
+  margin: 0;
+  color: #667085;
+}
+
+.badge {
+  background: #eef2f6;
+  padding: 8px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* ============================================================
+   CARDS
+   ============================================================ */
+
+.card {
+  background: #fff;
+  border: 1px solid #e4e7ec;
+  border-radius: 16px;
+  overflow: hidden;
+  margin-bottom: 18px;
+  box-shadow: 0 2px 8px rgba(16, 24, 40, 0.03);
+}
+
+.card h3 {
+  padding: 18px;
+  margin: 0;
+  border-bottom: 1px solid #eaecf0;
+  font-size: 17px;
+}
+
+/* ============================================================
+   MEN'S TABLES
+   ============================================================ */
+
+.tables-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+  align-items: start;
+}
+
+.table-wrap {
+  width: 100%;
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 600px;
+}
+
+th,
+td {
+  padding: 12px 13px;
+  border-bottom: 1px solid #f0f2f5;
+  text-align: center;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+th:first-child,
+td:first-child {
+  text-align: center;
+}
+
+th:nth-child(2),
+td:nth-child(2) {
+  text-align: left;
+}
+
+th {
+  font-size: 11px;
+  color: #667085;
+  background: #fafafa;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+tbody tr {
+  transition: background 0.15s;
+}
+
+tbody tr:hover {
+  background: #fafafa;
+}
+
+.rank {
+  font-weight: 800;
+  width: 45px;
+}
+
+.pts {
+  font-weight: 900;
+}
+
+.team-name {
+  font-weight: 700;
+}
+
+.admin-points {
+  display: flex;
+  justify-content: center;
+  gap: 5px;
+  align-items: center;
+}
+
+.admin-points button {
+  padding: 5px 8px;
+  font-size: 11px;
+}
+
+/* ============================================================
+   WOMEN TABLE
+   ============================================================ */
+
+#womenTable .card {
+  margin-bottom: 0;
+}
+
+/* ============================================================
+   MATCHES
+   ============================================================ */
+
+#matches {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.matchday {
+  background: #fff;
+  border: 1px solid #e4e7ec;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(16, 24, 40, 0.03);
+}
+
+.matchday h3 {
+  margin: 0;
+  padding: 14px 18px;
+  background: #fafafa;
+  border-bottom: 1px solid #eaecf0;
+  font-size: 14px;
+  font-weight: 800;
+  color: #344054;
+}
+
+.match {
+  display: grid;
+  grid-template-columns: 95px minmax(250px, 1fr) 110px 120px;
+  align-items: center;
+  gap: 15px;
+  padding: 18px;
+}
+
+.match + .match {
+  border-top: 1px solid #f0f2f5;
+}
+
+.match-date {
+  font-size: 12px;
+  color: #667085;
+  font-weight: 700;
+}
+
+.match-teams {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.match-team {
+  font-weight: 800;
+  font-size: 15px;
+}
+
+.match-gender {
+  font-size: 11px;
+  color: #667085;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.score {
+  font-size: 22px;
+  font-weight: 900;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.score.pending {
+  font-size: 13px;
+  color: #667085;
+  font-weight: 700;
+}
+
+.edit {
+  font-size: 12px;
+  text-align: right;
+}
+
+/* ============================================================
+   NEXT MATCH
+   ============================================================ */
+
+#nextMatch {
+  width: 100%;
+}
+
+.next-match-content {
+  width: 100%;
+}
+
+.next-match-date {
+  font-size: 12px;
+  color: #98a2b3;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 10px;
+}
+
+.next-match-teams {
+  font-size: 25px;
+  font-weight: 900;
+  line-height: 1.3;
+}
+
+.next-match-info {
+  margin-top: 10px;
+  color: #d0d5dd;
+  font-size: 13px;
+}
+
+/* ============================================================
+   SCORERS
+   ============================================================ */
+
+.scorers-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+
+.scorers-table table {
+  min-width: 0;
+}
+
+.scorers-table th,
+.scorers-table td {
+  padding: 12px 14px;
+}
+
+.scorer-name {
+  font-weight: 800;
+}
+
+/* ============================================================
+   GRADO
+   ============================================================ */
+
+#cleanlinessTable {
+  min-width: 0;
+}
+
+#cleanlinessTable td:first-child {
+  font-weight: 800;
+}
+
+#cleanlinessTable td:last-child {
+  font-weight: 900;
+}
+
+/* ============================================================
+   SANCTIONS
+   ============================================================ */
+
+#sanctions {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.sanction {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 2fr auto;
+  gap: 12px;
+  align-items: center;
+  background: #fff;
+  border: 1px solid #e4e7ec;
+  border-radius: 12px;
+  padding: 14px 16px;
+}
+
+.sanction strong {
+  font-size: 14px;
+}
+
+.sanction span {
+  font-size: 13px;
+  color: #667085;
+}
+
+.sanction-actions {
+  display: flex;
+  gap: 6px;
+  justify-content: flex-end;
+}
+
+.sanction-actions button {
+  padding: 7px 9px;
+  font-size: 11px;
+}
+
+/* ============================================================
+   MODALS
+   ============================================================ */
+
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 20px;
+}
+
+.modal-box {
+  background: #fff;
+  width: min(440px, 92vw);
+  padding: 28px;
+  border-radius: 18px;
+  position: relative;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+}
+
+.modal-box h2 {
+  margin-top: 0;
+}
+
+.close {
+  position: absolute;
+  right: 15px;
+  top: 12px;
+  background: transparent;
+  font-size: 25px;
+  padding: 3px 8px;
+}
+
+.modal-box input,
+.modal-box select,
+.modal-box textarea {
+  width: 100%;
+  padding: 11px;
+  margin: 7px 0;
+  border: 1px solid #d0d5dd;
+  border-radius: 9px;
+  font: inherit;
+}
+
+.modal-box input:focus,
+.modal-box select:focus,
+.modal-box textarea:focus {
+  outline: 2px solid #d0d5dd;
+}
+
+.msg {
+  font-size: 13px;
+  color: #b42318;
+}
+
+/* ============================================================
+   EMPTY STATES
+   ============================================================ */
+
+.empty {
+  padding: 25px;
+  background: #fff;
+  border: 1px dashed #d0d5dd;
+  border-radius: 12px;
+  color: #667085;
+  text-align: center;
+}
+
+/* ============================================================
+   FOOTER
+   ============================================================ */
+
+footer {
+  text-align: center;
+  color: #98a2b3;
+  padding: 25px;
+  font-size: 12px;
+}
+
+/* ============================================================
+   MOBILE
+   ============================================================ */
+
+@media (max-width: 900px) {
+
+  nav {
+    gap: 10px;
+  }
+
+  nav a {
+    display: none;
+  }
+
+  .hero {
+    grid-template-columns: 1fr;
+  }
+
+  .hero h1 {
+    font-size: 43px;
+  }
+
+  .tables-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .scorers-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .match {
+    grid-template-columns: 75px 1fr 75px;
+  }
+
+  .match .edit {
+    display: none;
+  }
+
+  .sanction {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .sanction > *:last-child {
+    grid-column: 1 / -1;
+  }
+
+  .sanction-actions {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 600px) {
+
+  main {
+    padding: 20px 12px 50px;
+  }
+
+  .hero {
+    padding: 35px 0;
+  }
+
+  .hero h1 {
+    font-size: 38px;
+  }
+
+  .section-title {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .match {
+    grid-template-columns: 1fr 75px;
+  }
+
+  .match-date {
+    grid-column: 1 / -1;
+  }
+
+  .match-teams {
+    grid-column: 1;
+  }
+
+  .score {
+    grid-column: 2;
+    grid-row: 2;
+  }
+
+  .sanction {
+    grid-template-columns: 1fr;
+  }
+
+  .sanction > *:last-child {
+    grid-column: auto;
+  }
+}
