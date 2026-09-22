@@ -52,6 +52,9 @@ const MATCH_DATES = {
   6: "2026-09-17",
   7: "2026-09-18",
 
+  // IMPORTANTE:
+  // Partido 9 = 22 de septiembre
+  // Partido 8 = 23 de septiembre
   9: "2026-09-22",
   8: "2026-09-23",
 
@@ -116,15 +119,18 @@ let editingCleanlinessId = null;
 // INICIO
 // ============================================================
 
-document.addEventListener("DOMContentLoaded", async function () {
+document.addEventListener(
+  "DOMContentLoaded",
+  async function () {
 
-  await checkSession();
+    await checkSession();
 
-  await refreshAll();
+    await refreshAll();
 
-  setupButtons();
+    setupButtons();
 
-});
+  }
+);
 
 
 // ============================================================
@@ -137,14 +143,21 @@ function setupButtons() {
     document.getElementById("login-button");
 
   if (loginButton) {
-    loginButton.addEventListener("click", login);
+    loginButton.addEventListener(
+      "click",
+      login
+    );
   }
+
 
   const logoutButton =
     document.getElementById("logout-button");
 
   if (logoutButton) {
-    logoutButton.addEventListener("click", logout);
+    logoutButton.addEventListener(
+      "click",
+      logout
+    );
   }
 
 }
@@ -158,15 +171,20 @@ async function checkSession() {
 
   try {
 
-    const result = await db.auth.getSession();
+    const result =
+      await db.auth.getSession();
 
-    currentSession = result.data.session || null;
+    currentSession =
+      result.data.session || null;
 
     updateAuthUI();
 
   } catch (error) {
 
-    console.error("Error al comprobar sesión:", error);
+    console.error(
+      "Error al comprobar sesión:",
+      error
+    );
 
   }
 
@@ -176,14 +194,23 @@ async function checkSession() {
 async function login() {
 
   const emailInput =
-    document.getElementById("login-email");
+    document.getElementById(
+      "login-email"
+    );
 
   const passwordInput =
-    document.getElementById("login-password");
+    document.getElementById(
+      "login-password"
+    );
 
-  if (!emailInput || !passwordInput) {
+
+  if (
+    !emailInput ||
+    !passwordInput
+  ) {
     return;
   }
+
 
   const email =
     emailInput.value.trim();
@@ -191,12 +218,16 @@ async function login() {
   const password =
     passwordInput.value;
 
+
   if (!email || !password) {
 
-    alert("Ingresa tu correo y contraseña.");
+    alert(
+      "Ingresa tu correo y contraseña."
+    );
 
     return;
   }
+
 
   const result =
     await db.auth.signInWithPassword({
@@ -204,15 +235,20 @@ async function login() {
       password: password
     });
 
+
   if (result.error) {
 
-    alert(result.error.message);
+    alert(
+      result.error.message
+    );
 
     return;
   }
 
+
   currentSession =
     result.data.session;
+
 
   updateAuthUI();
 
@@ -237,29 +273,38 @@ async function logout() {
 function updateAuthUI() {
 
   const loginArea =
-    document.getElementById("login-area");
+    document.getElementById(
+      "login-area"
+    );
 
   const adminArea =
-    document.getElementById("admin-area");
+    document.getElementById(
+      "admin-area"
+    );
+
 
   if (currentSession) {
 
     if (loginArea) {
-      loginArea.style.display = "none";
+      loginArea.style.display =
+        "none";
     }
 
     if (adminArea) {
-      adminArea.style.display = "block";
+      adminArea.style.display =
+        "block";
     }
 
   } else {
 
     if (loginArea) {
-      loginArea.style.display = "block";
+      loginArea.style.display =
+        "block";
     }
 
     if (adminArea) {
-      adminArea.style.display = "none";
+      adminArea.style.display =
+        "none";
     }
 
   }
@@ -268,7 +313,7 @@ function updateAuthUI() {
 
 
 // ============================================================
-// REFRESH
+// REFRESH GENERAL
 // ============================================================
 
 async function refreshAll() {
@@ -294,10 +339,15 @@ function normalizeTeam(team) {
     return "";
   }
 
+
   const name =
     String(team).trim();
 
-  return ALIASES[name] || name;
+
+  return (
+    ALIASES[name] ||
+    name
+  );
 
 }
 
@@ -315,6 +365,7 @@ function isMenTeam(team) {
 
   const name =
     normalizeTeam(team);
+
 
   return (
     MEN_A.includes(name) ||
@@ -335,6 +386,7 @@ function getGender(home, away) {
 
   }
 
+
   return "M";
 
 }
@@ -351,6 +403,7 @@ async function loadMatches() {
       .from("matches")
       .select("*");
 
+
   if (result.error) {
 
     console.error(
@@ -361,8 +414,10 @@ async function loadMatches() {
     return;
   }
 
+
   const matches =
     result.data || [];
+
 
   renderMatches(matches);
 
@@ -388,14 +443,18 @@ function getMatchNumber(match) {
 
   }
 
+
   if (
     match.match_number !== undefined &&
     match.match_number !== null
   ) {
 
-    return Number(match.match_number);
+    return Number(
+      match.match_number
+    );
 
   }
+
 
   return 999;
 
@@ -411,19 +470,23 @@ function getMatchDate(match) {
   const number =
     getMatchNumber(match);
 
+
   if (MATCH_DATES[number]) {
 
     return MATCH_DATES[number];
 
   }
 
+
   if (match.date) {
     return match.date;
   }
 
+
   if (match.match_date) {
     return match.match_date;
   }
+
 
   return "";
 
@@ -436,12 +499,23 @@ function formatDate(dateString) {
     return "";
   }
 
-  const date =
-    new Date(dateString + "T12:00:00");
 
-  if (isNaN(date.getTime())) {
+  const date =
+    new Date(
+      dateString + "T12:00:00"
+    );
+
+
+  if (
+    isNaN(
+      date.getTime()
+    )
+  ) {
+
     return dateString;
+
   }
+
 
   return date.toLocaleDateString(
     "es-GT",
@@ -470,9 +544,14 @@ function sortMatchesByDate(matches) {
       const dateB =
         getMatchDate(b);
 
+
       return (
-        new Date(dateA + "T12:00:00") -
-        new Date(dateB + "T12:00:00")
+        new Date(
+          dateA + "T12:00:00"
+        ) -
+        new Date(
+          dateB + "T12:00:00"
+        )
       );
 
     }
@@ -496,6 +575,7 @@ function getHomeScore(match) {
 
   }
 
+
   if (
     match.home_goals !== undefined &&
     match.home_goals !== null
@@ -504,6 +584,7 @@ function getHomeScore(match) {
     return match.home_goals;
 
   }
+
 
   return null;
 
@@ -521,6 +602,7 @@ function getAwayScore(match) {
 
   }
 
+
   if (
     match.away_goals !== undefined &&
     match.away_goals !== null
@@ -529,6 +611,7 @@ function getAwayScore(match) {
     return match.away_goals;
 
   }
+
 
   return null;
 
@@ -554,41 +637,59 @@ function renderMatches(matches) {
   const sorted =
     sortMatchesByDate(matches);
 
+
   const menMatches =
-    sorted.filter(function (match) {
+    sorted.filter(
+      function (match) {
 
-      return (
-        getGender(
-          match.home_team,
-          match.away_team
-        ) === "M"
-      );
+        return (
+          getGender(
+            match.home_team,
+            match.away_team
+          ) === "M"
+        );
 
-    });
+      }
+    );
+
 
   const womenMatches =
-    sorted.filter(function (match) {
+    sorted.filter(
+      function (match) {
 
-      return (
-        getGender(
-          match.home_team,
-          match.away_team
-        ) === "F"
-      );
+        return (
+          getGender(
+            match.home_team,
+            match.away_team
+          ) === "F"
+        );
 
-    });
+      }
+    );
 
 
   const menContainer =
-    document.getElementById("men-matches") ||
-    document.getElementById("matches-men") ||
-    document.getElementById("boys-matches");
+    document.getElementById(
+      "men-matches"
+    ) ||
+    document.getElementById(
+      "matches-men"
+    ) ||
+    document.getElementById(
+      "boys-matches"
+    );
 
 
   const womenContainer =
-    document.getElementById("women-matches") ||
-    document.getElementById("matches-women") ||
-    document.getElementById("girls-matches");
+    document.getElementById(
+      "women-matches"
+    ) ||
+    document.getElementById(
+      "matches-women"
+    ) ||
+    document.getElementById(
+      "girls-matches"
+    );
 
 
   if (menContainer) {
@@ -620,10 +721,16 @@ function renderMatches(matches) {
 function matchCardHTML(match) {
 
   const home =
-    normalizeTeam(match.home_team);
+    normalizeTeam(
+      match.home_team
+    );
+
 
   const away =
-    normalizeTeam(match.away_team);
+    normalizeTeam(
+      match.away_team
+    );
+
 
   const homeScore =
     getHomeScore(match);
@@ -631,8 +738,10 @@ function matchCardHTML(match) {
   const awayScore =
     getAwayScore(match);
 
+
   const number =
     getMatchNumber(match);
+
 
   const date =
     getMatchDate(match);
@@ -640,18 +749,22 @@ function matchCardHTML(match) {
 
   let score = "VS";
 
+
   if (
     homeScore !== null &&
     awayScore !== null
   ) {
 
     score =
-      homeScore + " - " + awayScore;
+      homeScore +
+      " - " +
+      awayScore;
 
   }
 
 
   let adminButton = "";
+
 
   if (currentSession) {
 
@@ -676,7 +789,9 @@ function matchCardHTML(match) {
         </span>
 
         <span>
-          ${formatDate(date)}
+          ${escapeHTML(
+            formatDate(date)
+          )}
         </span>
 
       </div>
@@ -726,7 +841,10 @@ function matchCardHTML(match) {
 function renderNext(matches) {
 
   const container =
-    document.getElementById("next-match");
+    document.getElementById(
+      "next-match"
+    );
+
 
   if (!container) {
     return;
@@ -735,6 +853,7 @@ function renderNext(matches) {
 
   const today =
     new Date();
+
 
   today.setHours(
     0,
@@ -746,23 +865,29 @@ function renderNext(matches) {
 
   const upcoming =
     sortMatchesByDate(matches)
-      .filter(function (match) {
+      .filter(
+        function (match) {
 
-        const dateString =
-          getMatchDate(match);
+          const dateString =
+            getMatchDate(match);
 
-        if (!dateString) {
-          return false;
+
+          if (!dateString) {
+            return false;
+          }
+
+
+          const date =
+            new Date(
+              dateString +
+              "T12:00:00"
+            );
+
+
+          return date >= today;
+
         }
-
-        const date =
-          new Date(
-            dateString + "T12:00:00"
-          );
-
-        return date >= today;
-
-      });
+      );
 
 
   if (!upcoming.length) {
@@ -794,10 +919,15 @@ function renderNext(matches) {
 
 
   const home =
-    normalizeTeam(next.home_team);
+    normalizeTeam(
+      next.home_team
+    );
+
 
   const away =
-    normalizeTeam(next.away_team);
+    normalizeTeam(
+      next.away_team
+    );
 
 
   container.innerHTML = `
@@ -810,8 +940,10 @@ function renderNext(matches) {
         </span>
 
         <span>
-          ${formatDate(
-            getMatchDate(next)
+          ${escapeHTML(
+            formatDate(
+              getMatchDate(next)
+            )
           )}
         </span>
 
@@ -871,7 +1003,9 @@ async function editMatch(id) {
 
   if (result.error) {
 
-    alert(result.error.message);
+    alert(
+      result.error.message
+    );
 
     return;
   }
@@ -879,6 +1013,7 @@ async function editMatch(id) {
 
   const match =
     result.data;
+
 
   editingMatchId =
     id;
@@ -976,27 +1111,38 @@ async function saveMatch() {
     );
 
 
-  if (!homeInput || !awayInput) {
+  if (
+    !homeInput ||
+    !awayInput
+  ) {
+
     return;
+
   }
 
 
   const homeScore =
     homeInput.value === ""
       ? null
-      : Number(homeInput.value);
+      : Number(
+          homeInput.value
+        );
 
 
   const awayScore =
     awayInput.value === ""
       ? null
-      : Number(awayInput.value);
+      : Number(
+          awayInput.value
+        );
 
 
   if (
     homeScore !== null &&
     (
-      !Number.isInteger(homeScore) ||
+      !Number.isInteger(
+        homeScore
+      ) ||
       homeScore < 0
     )
   ) {
@@ -1012,7 +1158,9 @@ async function saveMatch() {
   if (
     awayScore !== null &&
     (
-      !Number.isInteger(awayScore) ||
+      !Number.isInteger(
+        awayScore
+      ) ||
       awayScore < 0
     )
   ) {
@@ -1029,8 +1177,11 @@ async function saveMatch() {
     await db
       .from("matches")
       .update({
-        home_score: homeScore,
-        away_score: awayScore
+        home_score:
+          homeScore,
+
+        away_score:
+          awayScore
       })
       .eq(
         "id",
@@ -1040,7 +1191,9 @@ async function saveMatch() {
 
   if (result.error) {
 
-    alert(result.error.message);
+    alert(
+      result.error.message
+    );
 
     return;
   }
@@ -1072,11 +1225,13 @@ function renderTables(matches) {
       matches
     );
 
+
   const tableB =
     createStandings(
       MEN_B,
       matches
     );
+
 
   const tableWomen =
     createStandings(
@@ -1150,138 +1305,153 @@ function createStandings(
   const table = {};
 
 
-  teams.forEach(function (team) {
+  teams.forEach(
+    function (team) {
 
-    table[team] = {
+      table[team] = {
 
-      team: team,
+        team: team,
 
-      played: 0,
+        played: 0,
 
-      wins: 0,
+        wins: 0,
 
-      draws: 0,
+        draws: 0,
 
-      losses: 0,
+        losses: 0,
 
-      goalsFor: 0,
+        goalsFor: 0,
 
-      goalsAgainst: 0,
+        goalsAgainst: 0,
 
-      goalDifference: 0,
+        goalDifference: 0,
 
-      points: 0
+        points: 0
 
-    };
-
-  });
-
-
-  matches.forEach(function (match) {
-
-    if (!hasScore(match)) {
-      return;
-    }
-
-
-    const home =
-      normalizeTeam(
-        match.home_team
-      );
-
-    const away =
-      normalizeTeam(
-        match.away_team
-      );
-
-
-    if (
-      !table[home] ||
-      !table[away]
-    ) {
-
-      return;
+      };
 
     }
+  );
 
 
-    const homeScore =
-      Number(
-        getHomeScore(match)
-      );
+  matches.forEach(
+    function (match) {
 
-    const awayScore =
-      Number(
-        getAwayScore(match)
-      );
+      if (!hasScore(match)) {
+        return;
+      }
 
 
-    table[home].played++;
-    table[away].played++;
+      const home =
+        normalizeTeam(
+          match.home_team
+        );
 
 
-    table[home].goalsFor +=
-      homeScore;
-
-    table[home].goalsAgainst +=
-      awayScore;
-
-
-    table[away].goalsFor +=
-      awayScore;
-
-    table[away].goalsAgainst +=
-      homeScore;
+      const away =
+        normalizeTeam(
+          match.away_team
+        );
 
 
-    if (homeScore > awayScore) {
+      if (
+        !table[home] ||
+        !table[away]
+      ) {
 
-      table[home].wins++;
+        return;
 
-      table[away].losses++;
+      }
 
-      table[home].points += 3;
+
+      const homeScore =
+        Number(
+          getHomeScore(match)
+        );
+
+
+      const awayScore =
+        Number(
+          getAwayScore(match)
+        );
+
+
+      table[home].played++;
+
+      table[away].played++;
+
+
+      table[home].goalsFor +=
+        homeScore;
+
+
+      table[home].goalsAgainst +=
+        awayScore;
+
+
+      table[away].goalsFor +=
+        awayScore;
+
+
+      table[away].goalsAgainst +=
+        homeScore;
+
+
+      if (
+        homeScore >
+        awayScore
+      ) {
+
+        table[home].wins++;
+
+        table[away].losses++;
+
+        table[home].points += 3;
+
+      }
+
+      else if (
+        awayScore >
+        homeScore
+      ) {
+
+        table[away].wins++;
+
+        table[home].losses++;
+
+        table[away].points += 3;
+
+      }
+
+      else {
+
+        table[home].draws++;
+
+        table[away].draws++;
+
+        table[home].points++;
+
+        table[away].points++;
+
+      }
 
     }
-
-    else if (
-      awayScore > homeScore
-    ) {
-
-      table[away].wins++;
-
-      table[home].losses++;
-
-      table[away].points += 3;
-
-    }
-
-    else {
-
-      table[home].draws++;
-
-      table[away].draws++;
-
-      table[home].points++;
-
-      table[away].points++;
-
-    }
-
-  });
+  );
 
 
   const rows =
     Object.values(table);
 
 
-  rows.forEach(function (row) {
+  rows.forEach(
+    function (row) {
 
-    row.goalDifference =
-      row.goalsFor -
-      row.goalsAgainst;
+      row.goalDifference =
+        row.goalsFor -
+        row.goalsAgainst;
 
-  });
+    }
+  );
 
 
   rows.sort(
@@ -1361,59 +1531,64 @@ function standingsHTML(rows) {
       </div>
 
 
-      ${rows.map(
-        function (row, index) {
+      ${rows
+        .map(
+          function (
+            row,
+            index
+          ) {
 
-          return `
-            <div class="standings-row">
+            return `
+              <div class="standings-row">
 
-              <span>
-                ${index + 1}
-              </span>
+                <span>
+                  ${index + 1}
+                </span>
 
-              <span>
-                ${escapeHTML(
-                  row.team
-                )}
-              </span>
+                <span>
+                  ${escapeHTML(
+                    row.team
+                  )}
+                </span>
 
-              <span>
-                ${row.played}
-              </span>
+                <span>
+                  ${row.played}
+                </span>
 
-              <span>
-                ${row.wins}
-              </span>
+                <span>
+                  ${row.wins}
+                </span>
 
-              <span>
-                ${row.draws}
-              </span>
+                <span>
+                  ${row.draws}
+                </span>
 
-              <span>
-                ${row.losses}
-              </span>
+                <span>
+                  ${row.losses}
+                </span>
 
-              <span>
-                ${row.goalsFor}
-              </span>
+                <span>
+                  ${row.goalsFor}
+                </span>
 
-              <span>
-                ${row.goalsAgainst}
-              </span>
+                <span>
+                  ${row.goalsAgainst}
+                </span>
 
-              <span>
-                ${row.goalDifference}
-              </span>
+                <span>
+                  ${row.goalDifference}
+                </span>
 
-              <strong>
-                ${row.points}
-              </strong>
+                <strong>
+                  ${row.points}
+                </strong>
 
-            </div>
-          `;
+              </div>
+            `;
 
-        }
-      ).join("")}
+          }
+        )
+        .join("")}
 
     </div>
   `;
@@ -1482,90 +1657,92 @@ function renderSanctions(
 
 
   container.innerHTML =
-    sanctions.map(
-      function (sanction) {
+    sanctions
+      .map(
+        function (sanction) {
 
-        let buttons = "";
+          let buttons = "";
 
 
-        if (currentSession) {
+          if (currentSession) {
 
-          buttons = `
-            <div class="admin-actions">
+            buttons = `
+              <div class="admin-actions">
 
-              <button
-                class="admin-button"
-                onclick="editSanction(${sanction.id})">
-                ✏️ Editar
-              </button>
+                <button
+                  class="admin-button"
+                  onclick="editSanction(${sanction.id})">
+                  ✏️ Editar
+                </button>
 
-              <button
-                class="admin-button danger"
-                onclick="deleteSanction(${sanction.id})">
-                🗑️ Eliminar
-              </button>
+                <button
+                  class="admin-button danger"
+                  onclick="deleteSanction(${sanction.id})">
+                  🗑️ Eliminar
+                </button>
+
+              </div>
+            `;
+
+          }
+
+
+          const student =
+            sanction.student ||
+            sanction.player ||
+            sanction.name ||
+            "";
+
+
+          const team =
+            sanction.team ||
+            sanction.grade ||
+            "";
+
+
+          const reason =
+            sanction.reason ||
+            sanction.description ||
+            "";
+
+
+          return `
+            <div class="sanction-card">
+
+              <div class="sanction-title">
+                ${escapeHTML(student)}
+              </div>
+
+              <div class="sanction-info">
+                ${escapeHTML(team)}
+              </div>
+
+              <div class="sanction-description">
+                ${escapeHTML(reason)}
+              </div>
+
+              ${
+                sanction.date
+                  ? `
+                    <div class="sanction-date">
+                      ${escapeHTML(
+                        String(
+                          sanction.date
+                        )
+                      )}
+                    </div>
+                  `
+                  : ""
+              }
+
+              ${buttons}
 
             </div>
           `;
 
         }
-
-
-        const student =
-          sanction.student ||
-          sanction.player ||
-          sanction.name ||
-          "";
-
-
-        const team =
-          sanction.team ||
-          sanction.grade ||
-          "";
-
-
-        const reason =
-          sanction.reason ||
-          sanction.description ||
-          "";
-
-
-        return `
-          <div class="sanction-card">
-
-            <div class="sanction-title">
-              ${escapeHTML(student)}
-            </div>
-
-            <div class="sanction-info">
-              ${escapeHTML(team)}
-            </div>
-
-            <div class="sanction-description">
-              ${escapeHTML(reason)}
-            </div>
-
-            ${
-              sanction.date
-                ? `
-                  <div class="sanction-date">
-                    ${escapeHTML(
-                      String(
-                        sanction.date
-                      )
-                    )}
-                  </div>
-                `
-                : ""
-            }
-
-            ${buttons}
-
-          </div>
-        `;
-
-      }
-    ).join("");
+      )
+      .join("");
 
 }
 
@@ -1632,7 +1809,10 @@ async function addSanction() {
     )?.value;
 
 
-  if (!student || !reason) {
+  if (
+    !student ||
+    !reason
+  ) {
 
     alert(
       "Completa el nombre y la razón."
@@ -1648,9 +1828,11 @@ async function addSanction() {
       .insert([
         {
           student: student,
-          team: team || null,
+          team:
+            team || null,
           reason: reason,
-          date: date || null
+          date:
+            date || null
         }
       ]);
 
@@ -1832,7 +2014,10 @@ async function saveSanction() {
     )?.value;
 
 
-  if (!student || !reason) {
+  if (
+    !student ||
+    !reason
+  ) {
 
     alert(
       "Completa el nombre y la razón."
@@ -1847,9 +2032,11 @@ async function saveSanction() {
       .from("sanctions")
       .update({
         student: student,
-        team: team || null,
+        team:
+          team || null,
         reason: reason,
-        date: date || null
+        date:
+          date || null
       })
       .eq(
         "id",
@@ -1955,7 +2142,9 @@ async function loadScorers() {
 }
 
 
-function renderScorers(scorers) {
+function renderScorers(
+  scorers
+) {
 
   const menContainer =
     document.getElementById(
@@ -2029,7 +2218,9 @@ function renderScorers(scorers) {
 // TABLA GOLEADORES
 // ============================================================
 
-function scorerTableHTML(scorers) {
+function scorerTableHTML(
+  scorers
+) {
 
   const sorted =
     [...scorers].sort(
@@ -2051,7 +2242,10 @@ function scorerTableHTML(scorers) {
           );
 
 
-        return goalsB - goalsA;
+        return (
+          goalsB -
+          goalsA
+        );
 
       }
     );
@@ -2090,79 +2284,88 @@ function scorerTableHTML(scorers) {
       </div>
 
 
-      ${sorted.map(
-        function (scorer, index) {
+      ${sorted
+        .map(
+          function (
+            scorer,
+            index
+          ) {
 
-          const player =
-            scorer.player ||
-            scorer.name ||
-            "";
-
-
-          const team =
-            normalizeTeam(
-              scorer.team || ""
-            );
+            const player =
+              scorer.player ||
+              scorer.name ||
+              "";
 
 
-          const goals =
-            scorer.goals ??
-            scorer.goal_count ??
-            0;
+            const team =
+              normalizeTeam(
+                scorer.team || ""
+              );
 
 
-          let actions = "";
+            const goals =
+              scorer.goals ??
+              scorer.goal_count ??
+              0;
 
 
-          if (currentSession) {
+            let actions = "";
 
-            actions = `
-              <span>
 
-                <button
-                  class="admin-button"
-                  onclick="editScorer(${scorer.id})">
-                  ✏️
-                </button>
+            if (currentSession) {
 
-                <button
-                  class="admin-button danger"
-                  onclick="deleteScorer(${scorer.id})">
-                  🗑️
-                </button>
+              actions = `
+                <span>
 
-              </span>
+                  <button
+                    class="admin-button"
+                    onclick="editScorer(${scorer.id})">
+                    ✏️
+                  </button>
+
+                  <button
+                    class="admin-button danger"
+                    onclick="deleteScorer(${scorer.id})">
+                    🗑️
+                  </button>
+
+                </span>
+              `;
+
+            }
+
+
+            return `
+              <div class="scorer-row">
+
+                <span>
+                  ${index + 1}
+                </span>
+
+                <strong>
+                  ${escapeHTML(
+                    player
+                  )}
+                </strong>
+
+                <span>
+                  ${escapeHTML(
+                    team
+                  )}
+                </span>
+
+                <strong>
+                  ${goals}
+                </strong>
+
+                ${actions}
+
+              </div>
             `;
 
           }
-
-
-          return `
-            <div class="scorer-row">
-
-              <span>
-                ${index + 1}
-              </span>
-
-              <strong>
-                ${escapeHTML(player)}
-              </strong>
-
-              <span>
-                ${escapeHTML(team)}
-              </span>
-
-              <strong>
-                ${goals}
-              </strong>
-
-              ${actions}
-
-            </div>
-          `;
-
-        }
-      ).join("")}
+        )
+        .join("")}
 
     </div>
   `;
@@ -2234,7 +2437,10 @@ async function addScorer() {
     );
 
 
-  if (!player || !team) {
+  if (
+    !player ||
+    !team
+  ) {
 
     alert(
       "Completa el jugador y el equipo."
@@ -2249,10 +2455,17 @@ async function addScorer() {
       .from("scorers")
       .insert([
         {
-          player: player,
-          team: normalizeTeam(team),
-          gender: gender || null,
-          goals: goals
+          player:
+            player,
+
+          team:
+            normalizeTeam(team),
+
+          gender:
+            gender || null,
+
+          goals:
+            goals
         }
       ]);
 
@@ -2435,7 +2648,10 @@ async function saveScorer() {
     );
 
 
-  if (!player || !team) {
+  if (
+    !player ||
+    !team
+  ) {
 
     alert(
       "Completa el jugador y el equipo."
@@ -2449,10 +2665,17 @@ async function saveScorer() {
     await db
       .from("scorers")
       .update({
-        player: player,
-        team: normalizeTeam(team),
-        gender: gender || null,
-        goals: goals
+        player:
+          player,
+
+        team:
+          normalizeTeam(team),
+
+        gender:
+          gender || null,
+
+        goals:
+          goals
       })
       .eq(
         "id",
@@ -2562,7 +2785,9 @@ async function loadCleanliness() {
 // RENDER GRADO
 // ============================================================
 
-function renderCleanliness(rows) {
+function renderCleanliness(
+  rows
+) {
 
   const container =
     document.getElementById(
@@ -2613,80 +2838,95 @@ function renderCleanliness(rows) {
           );
 
 
-        return scoreB - scoreA;
+        return (
+          scoreB -
+          scoreA
+        );
 
       }
     );
 
 
   container.innerHTML =
-    sorted.map(
-      function (row, index) {
+    sorted
+      .map(
+        function (
+          row,
+          index
+        ) {
 
-        const name =
-          row.grade ||
-          row.name ||
-          row.team ||
-          "";
-
-
-        const score =
-          row.score ??
-          row.points ??
-          0;
+          const name =
+            row.grade ||
+            row.name ||
+            row.team ||
+            "";
 
 
-        let action = "";
+          const score =
+            row.score ??
+            row.points ??
+            0;
 
 
-        if (currentSession) {
+          let action = "";
 
-          action = `
-            <button
-              class="admin-button"
-              onclick="editCleanliness(${row.id})">
-              ✏️
-            </button>
+
+          if (currentSession) {
+
+            action = `
+              <button
+                class="admin-button"
+                onclick="editTeamPoints(${row.id})">
+                ✏️
+              </button>
+            `;
+
+          }
+
+
+          return `
+            <div class="cleanliness-row">
+
+              <span>
+                ${index + 1}
+              </span>
+
+              <strong>
+                ${escapeHTML(
+                  String(name)
+                )}
+              </strong>
+
+              <span>
+                ${score}
+              </span>
+
+              ${action}
+
+            </div>
           `;
 
         }
-
-
-        return `
-          <div class="cleanliness-row">
-
-            <span>
-              ${index + 1}
-            </span>
-
-            <strong>
-              ${escapeHTML(
-                String(name)
-              )}
-            </strong>
-
-            <span>
-              ${score}
-            </span>
-
-            ${action}
-
-          </div>
-        `;
-
-      }
-    ).join("");
+      )
+      .join("");
 
 }
 
 
 // ============================================================
-// EDITAR GRADO
+// EDITAR PUNTOS DE GRADO
 // ============================================================
 
-async function editCleanliness(id) {
+async function editTeamPoints(
+  id
+) {
 
   if (!currentSession) {
+
+    alert(
+      "Debes iniciar sesión como organizador."
+    );
+
     return;
   }
 
@@ -2701,6 +2941,11 @@ async function editCleanliness(id) {
 
   if (result.error) {
 
+    console.error(
+      "Error obteniendo puntos:",
+      result.error
+    );
+
     alert(
       result.error.message
     );
@@ -2713,55 +2958,120 @@ async function editCleanliness(id) {
     result.data;
 
 
-  editingCleanlinessId =
-    id;
+  const currentPoints =
+    row.score ??
+    row.points ??
+    0;
 
 
-  const nameInput =
-    document.getElementById(
-      "cleanliness-name"
+  const newPoints =
+    prompt(
+      "Ingresa los nuevos puntos:",
+      currentPoints
     );
 
 
-  const scoreInput =
-    document.getElementById(
-      "cleanliness-score"
-    );
+  if (
+    newPoints === null
+  ) {
 
-
-  if (nameInput) {
-
-    nameInput.value =
-      row.grade ||
-      row.name ||
-      row.team ||
-      "";
+    return;
 
   }
 
 
-  if (scoreInput) {
-
-    scoreInput.value =
-      row.score ??
-      row.points ??
-      0;
-
-  }
+  const points =
+    Number(newPoints);
 
 
-  const modal =
-    document.getElementById(
-      "cleanliness-modal"
+  if (
+    !Number.isFinite(points)
+  ) {
+
+    alert(
+      "Los puntos deben ser un número."
     );
 
+    return;
+  }
 
-  if (modal) {
 
-    modal.style.display =
-      "flex";
+  const updateData = {};
+
+
+  if (
+    Object.prototype.hasOwnProperty.call(
+      row,
+      "score"
+    )
+  ) {
+
+    updateData.score =
+      points;
 
   }
+
+  else if (
+    Object.prototype.hasOwnProperty.call(
+      row,
+      "points"
+    )
+  ) {
+
+    updateData.points =
+      points;
+
+  }
+
+  else {
+
+    alert(
+      "No se encontró una columna score o points en cleanliness_scores."
+    );
+
+    return;
+  }
+
+
+  const updateResult =
+    await db
+      .from("cleanliness_scores")
+      .update(updateData)
+      .eq(
+        "id",
+        id
+      );
+
+
+  if (updateResult.error) {
+
+    console.error(
+      "Error actualizando puntos:",
+      updateResult.error
+    );
+
+    alert(
+      updateResult.error.message
+    );
+
+    return;
+  }
+
+
+  await loadCleanliness();
+
+}
+
+
+// ============================================================
+// EDITAR GRADO — COMPATIBILIDAD
+// ============================================================
+
+async function editCleanliness(
+  id
+) {
+
+  return editTeamPoints(id);
 
 }
 
@@ -2778,7 +3088,6 @@ async function saveCleanliness() {
   ) {
 
     return;
-
   }
 
 
@@ -2799,7 +3108,9 @@ async function saveCleanliness() {
     );
 
 
-  if (!Number.isFinite(score)) {
+  if (
+    !Number.isFinite(score)
+  ) {
 
     alert(
       "El puntaje no es válido."
@@ -2849,7 +3160,9 @@ async function saveCleanliness() {
 // CERRAR MODAL
 // ============================================================
 
-function closeModal(id) {
+function closeModal(
+  id
+) {
 
   const modal =
     document.getElementById(id);
@@ -2869,7 +3182,9 @@ function closeModal(id) {
 // SEGURIDAD HTML
 // ============================================================
 
-function escapeHTML(value) {
+function escapeHTML(
+  value
+) {
 
   return String(value)
     .replace(
@@ -2897,7 +3212,7 @@ function escapeHTML(value) {
 
 
 // ============================================================
-// HACER FUNCIONES DISPONIBLES PARA HTML
+// FUNCIONES GLOBALES
 // ============================================================
 
 window.refreshAll =
@@ -2948,82 +3263,11 @@ window.deleteScorer =
 window.editCleanliness =
   editCleanliness;
 
+window.editTeamPoints =
+  editTeamPoints;
+
 window.saveCleanliness =
   saveCleanliness;
 
 window.closeModal =
   closeModal;
-// ============================================================
-// EDITAR PUNTOS DE GRADO
-// ============================================================
-
-async function editTeamPoints(id) {
-
-  if (!currentSession) {
-    return;
-  }
-
-  const result = await db
-    .from("cleanliness_scores")
-    .select("*")
-    .eq("id", id)
-    .single();
-
-  if (result.error) {
-    alert(result.error.message);
-    return;
-  }
-
-  const row = result.data;
-
-  const currentPoints =
-    row.score ??
-    row.points ??
-    0;
-
-  const newPoints = prompt(
-    "Ingresa los nuevos puntos:",
-    currentPoints
-  );
-
-  if (newPoints === null) {
-    return;
-  }
-
-  const points = Number(newPoints);
-
-  if (!Number.isFinite(points)) {
-    alert("Los puntos deben ser un número.");
-    return;
-  }
-
-  const updateData = {};
-
-  if (
-    Object.prototype.hasOwnProperty.call(
-      row,
-      "score"
-    )
-  ) {
-    updateData.score = points;
-  } else {
-    updateData.points = points;
-  }
-
-  const updateResult = await db
-    .from("cleanliness_scores")
-    .update(updateData)
-    .eq("id", id);
-
-  if (updateResult.error) {
-    alert(updateResult.error.message);
-    return;
-  }
-
-  await loadCleanliness();
-}
-
-
-// Hacer la función accesible desde el HTML
-window.editTeamPoints =
-  editTeamPoints;
