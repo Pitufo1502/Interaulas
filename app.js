@@ -2953,3 +2953,77 @@ window.saveCleanliness =
 
 window.closeModal =
   closeModal;
+// ============================================================
+// EDITAR PUNTOS DE GRADO
+// ============================================================
+
+async function editTeamPoints(id) {
+
+  if (!currentSession) {
+    return;
+  }
+
+  const result = await db
+    .from("cleanliness_scores")
+    .select("*")
+    .eq("id", id)
+    .single();
+
+  if (result.error) {
+    alert(result.error.message);
+    return;
+  }
+
+  const row = result.data;
+
+  const currentPoints =
+    row.score ??
+    row.points ??
+    0;
+
+  const newPoints = prompt(
+    "Ingresa los nuevos puntos:",
+    currentPoints
+  );
+
+  if (newPoints === null) {
+    return;
+  }
+
+  const points = Number(newPoints);
+
+  if (!Number.isFinite(points)) {
+    alert("Los puntos deben ser un número.");
+    return;
+  }
+
+  const updateData = {};
+
+  if (
+    Object.prototype.hasOwnProperty.call(
+      row,
+      "score"
+    )
+  ) {
+    updateData.score = points;
+  } else {
+    updateData.points = points;
+  }
+
+  const updateResult = await db
+    .from("cleanliness_scores")
+    .update(updateData)
+    .eq("id", id);
+
+  if (updateResult.error) {
+    alert(updateResult.error.message);
+    return;
+  }
+
+  await loadCleanliness();
+}
+
+
+// Hacer la función accesible desde el HTML
+window.editTeamPoints =
+  editTeamPoints;
