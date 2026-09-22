@@ -1,15 +1,11 @@
-// ===============================
-// INTERAULAS 2026 - APP.JS
-// ===============================
-
 const db = window.supabase.createClient(
   SUPABASE_URL,
   SUPABASE_ANON_KEY
 );
 
-// ===============================
-// EQUIPOS OFICIALES
-// ===============================
+// ======================================================
+// EQUIPOS
+// ======================================================
 
 const MEN_A = [
   "Fortnite",
@@ -36,12 +32,9 @@ const WOMEN = [
   "Las Cabritas"
 ];
 
-// ===============================
-// FECHAS DE LOS PARTIDOS
-// IMPORTANTE:
-// El partido #9 es Sep 22
-// El partido #8 es Sep 23
-// ===============================
+// ======================================================
+// FECHAS
+// ======================================================
 
 const MATCH_DATES = {
   1: "7 de septiembre",
@@ -123,9 +116,9 @@ const MATCH_DATE_VALUES = {
   35: "2026-11-03"
 };
 
-// ===============================
-// NOMBRES ANTIGUOS → NUEVOS
-// ===============================
+// ======================================================
+// NOMBRES ANTIGUOS
+// ======================================================
 
 const ALIASES = {
   "Finqueros": "Chispazos",
@@ -139,24 +132,22 @@ const ALIASES = {
 
 let session = null;
 let editingMatchId = null;
-let editingSanctionId = null;
-let editingScorerId = null;
 
-// ===============================
+// ======================================================
 // INICIO
-// ===============================
+// ======================================================
 
-document.addEventListener("DOMContentLoaded", async () => {
+document.addEventListener("DOMContentLoaded", function () {
   setupButtons();
-  await checkSession();
-  await refresh();
+  checkSession();
 });
 
-// ===============================
+// ======================================================
 // BOTONES
-// ===============================
+// ======================================================
 
 function setupButtons() {
+
   const loginBtn = document.getElementById("loginBtn");
   const logoutBtn = document.getElementById("logoutBtn");
   const addSanctionBtn = document.getElementById("addSanctionBtn");
@@ -178,55 +169,37 @@ function setupButtons() {
     addScorerBtn.addEventListener("click", addScorer);
   }
 
-  // Cerrar modales
-  document.querySelectorAll(".modal-close").forEach(btn => {
-    btn.addEventListener("click", closeModals);
+  document.querySelectorAll(".modal-close").forEach(function (button) {
+    button.addEventListener("click", closeModals);
   });
 }
 
-// ===============================
-// MODALES
-// ===============================
-
-function closeModals() {
-  document.querySelectorAll(".modal").forEach(modal => {
-    modal.classList.remove("show");
-    modal.style.display = "none";
-  });
-}
-
-function openModal(id) {
-  const modal = document.getElementById(id);
-
-  if (!modal) return;
-
-  modal.classList.add("show");
-  modal.style.display = "flex";
-}
-
-// ===============================
-// AUTENTICACIÓN
-// ===============================
+// ======================================================
+// SESIÓN
+// ======================================================
 
 async function checkSession() {
-  const { data } = await db.auth.getSession();
 
-  session = data.session;
+  const result = await db.auth.getSession();
+
+  session = result.data.session;
 
   updateAuthUI();
+  await refresh();
 
-  db.auth.onAuthStateChange((_event, newSession) => {
+  db.auth.onAuthStateChange(function (_event, newSession) {
     session = newSession;
     updateAuthUI();
   });
 }
 
 function updateAuthUI() {
+
   const loginBtn = document.getElementById("loginBtn");
   const logoutBtn = document.getElementById("logoutBtn");
 
-  document.querySelectorAll(".admin-only").forEach(el => {
-    el.style.display = session ? "" : "none";
+  document.querySelectorAll(".admin-only").forEach(function (element) {
+    element.style.display = session ? "" : "none";
   });
 
   if (loginBtn) {
@@ -239,6 +212,7 @@ function updateAuthUI() {
 }
 
 async function login() {
+
   const email = prompt("Correo del organizador:");
 
   if (!email) return;
@@ -247,59 +221,69 @@ async function login() {
 
   if (!password) return;
 
-  const { error } = await db.auth.signInWithPassword({
-    email,
-    password
+  const result = await db.auth.signInWithPassword({
+    email: email,
+    password: password
   });
 
-  if (error) {
-    alert("Error al iniciar sesión: " + error.message);
+  if (result.error) {
+    alert("Error: " + result.error.message);
     return;
   }
 
-  await checkSession();
-  await refresh();
-}
+  session = result.data.session;
 
-async function logout() {
-  await db.auth.signOut();
-  session = null;
   updateAuthUI();
   await refresh();
 }
 
-// ===============================
-// REFRESH GENERAL
-// ===============================
+async function logout() {
 
-async function refresh() {
-  await Promise.all([
-    renderTables(),
-    renderMatches(),
-    renderSanctions(),
-    renderScorers(),
-    renderNext(),
-    renderCleanliness()
-  ]);
+  await db.auth.signOut();
+
+  session = null;
+
+  updateAuthUI();
+  await refresh();
 }
 
-// ===============================
+// ======================================================
+// REFRESH
+// ======================================================
+
+async function refresh() {
+
+  await renderTables();
+  await renderMatches();
+  await renderNext();
+  await renderSanctions();
+  await renderScorers();
+  await renderCleanliness();
+}
+
+// ======================================================
 // NORMALIZAR EQUIPOS
-// ===============================
+// ======================================================
 
 function normalizeTeam(team) {
+
   if (!team) return "";
 
   const name = String(team).trim();
 
-  return ALIASES[name] || name;
+  if (ALIASES[name]) {
+    return ALIASES[name];
+  }
+
+  return name;
 }
 
-// ===============================
+// ======================================================
 // ESTADÍSTICAS
-// ===============================
+// ======================================================
 
-function emptyStats() {
+function createEmptyStats() {
+
   return {
     PJ: 0,
     G: 0,
@@ -312,18 +296,22 @@ function emptyStats() {
   };
 }
 
-function getTeamStats(matches, adjustments, teams) {
+function calculateStats(matches, teams, adjustments) {
+
   const stats = {};
 
-  teams.forEach(team => {
-    stats[team] = emptyStats();
+  teams.forEach(function (team) {
+    stats[team] = createEmptyStats();
   });
 
-  matches.forEach(match => {
+  matches.forEach(function (match) {
+
     const home = normalizeTeam(match.home_team);
     const away = normalizeTeam(match.away_team);
 
-    if (!stats[home] || !stats[away]) return;
+    if (!stats[home] || !stats[away]) {
+      return;
+    }
 
     if (
       match.home_score === null ||
@@ -334,29 +322,34 @@ function getTeamStats(matches, adjustments, teams) {
       return;
     }
 
-    const hs = Number(match.home_score);
-    const as = Number(match.away_score);
+    const homeScore = Number(match.home_score);
+    const awayScore = Number(match.away_score);
 
     stats[home].PJ++;
     stats[away].PJ++;
 
-    stats[home].GF += hs;
-    stats[home].GC += as;
+    stats[home].GF += homeScore;
+    stats[home].GC += awayScore;
 
-    stats[away].GF += as;
-    stats[away].GC += hs;
+    stats[away].GF += awayScore;
+    stats[away].GC += homeScore;
 
-    if (hs > as) {
+    if (homeScore > awayScore) {
+
       stats[home].G++;
       stats[away].P++;
 
       stats[home].PTS += 3;
-    } else if (hs < as) {
+
+    } else if (awayScore > homeScore) {
+
       stats[away].G++;
       stats[home].P++;
 
       stats[away].PTS += 3;
+
     } else {
+
       stats[home].E++;
       stats[away].E++;
 
@@ -365,40 +358,60 @@ function getTeamStats(matches, adjustments, teams) {
     }
   });
 
-  Object.keys(stats).forEach(team => {
+  Object.keys(stats).forEach(function (team) {
     stats[team].DG = stats[team].GF - stats[team].GC;
   });
 
-  adjustments.forEach(adj => {
-    const team = normalizeTeam(adj.team);
+  (adjustments || []).forEach(function (adjustment) {
+
+    const team = normalizeTeam(adjustment.team);
 
     if (stats[team]) {
-      stats[team].PTS += Number(adj.points || 0);
+      stats[team].PTS += Number(adjustment.points || 0);
     }
   });
 
   return stats;
 }
 
-// ===============================
-// TABLA HTML
-// ===============================
+// ======================================================
+// TABLA
+// ======================================================
 
 function tableHTML(stats, teams) {
-  const rows = teams
-    .map(team => ({
-      team,
-      ...stats[team]
-    }))
-    .sort((a, b) => {
-      if (b.PTS !== a.PTS) return b.PTS - a.PTS;
-      if (b.DG !== a.DG) return b.DG - a.DG;
-      if (b.GF !== a.GF) return b.GF - a.GF;
-      return a.team.localeCompare(b.team);
-    });
 
-  return rows
-    .map((row, index) => `
+  const rows = teams.map(function (team) {
+
+    return {
+      team: team,
+      PJ: stats[team].PJ,
+      G: stats[team].G,
+      E: stats[team].E,
+      P: stats[team].P,
+      GF: stats[team].GF,
+      GC: stats[team].GC,
+      DG: stats[team].DG,
+      PTS: stats[team].PTS
+    };
+
+  });
+
+  rows.sort(function (a, b) {
+
+    if (b.PTS !== a.PTS) {
+      return b.PTS - a.PTS;
+    }
+
+    if (b.DG !== a.DG) {
+      return b.DG - a.DG;
+    }
+
+    return b.GF - a.GF;
+  });
+
+  return rows.map(function (row, index) {
+
+    return `
       <tr>
         <td>${index + 1}</td>
         <td><strong>${row.team}</strong></td>
@@ -411,69 +424,57 @@ function tableHTML(stats, teams) {
         <td>${row.DG}</td>
         <td><strong>${row.PTS}</strong></td>
       </tr>
-    `)
-    .join("");
+    `;
+
+  }).join("");
 }
 
-// ===============================
-// TABLAS HOMBRES / MUJERES
-// ===============================
+// ======================================================
+// TABLAS
+// ======================================================
 
 async function renderTables() {
-  const { data: matches, error: matchesError } = await db
+
+  const matchesResult = await db
     .from("matches")
     .select("*");
 
-  if (matchesError) {
-    console.error(matchesError);
+  if (matchesResult.error) {
+    console.error(matchesResult.error);
     return;
   }
 
-  const { data: adjustments, error: adjustmentError } = await db
+  const adjustmentsResult = await db
     .from("point_adjustments")
     .select("*");
 
-  if (adjustmentError) {
-    console.error(adjustmentError);
-  }
+  const matches = matchesResult.data || [];
+  const adjustments = adjustmentsResult.data || [];
 
-  const allMatches = matches || [];
-  const allAdjustments = adjustments || [];
+  const menMatches = matches.filter(function (match) {
+    return String(match.gender || "").toUpperCase() === "M";
+  });
 
-  const menMatches = allMatches.filter(
-    m => String(m.gender || "").toUpperCase() === "M"
+  const womenMatches = matches.filter(function (match) {
+    return String(match.gender || "").toUpperCase() === "F";
+  });
+
+  const menAStats = calculateStats(
+    menMatches,
+    MEN_A,
+    adjustments
   );
 
-  const womenMatches = allMatches.filter(
-    m => String(m.gender || "").toUpperCase() === "F"
+  const menBStats = calculateStats(
+    menMatches,
+    MEN_B,
+    adjustments
   );
 
-  const menA = menMatches.filter(m =>
-    MEN_A.includes(normalizeTeam(m.home_team)) ||
-    MEN_A.includes(normalizeTeam(m.away_team))
-  );
-
-  const menB = menMatches.filter(m =>
-    MEN_B.includes(normalizeTeam(m.home_team)) ||
-    MEN_B.includes(normalizeTeam(m.away_team))
-  );
-
-  const menStatsA = getTeamStats(
-    menA,
-    allAdjustments,
-    MEN_A
-  );
-
-  const menStatsB = getTeamStats(
-    menB,
-    allAdjustments,
-    MEN_B
-  );
-
-  const womenStats = getTeamStats(
+  const womenStats = calculateStats(
     womenMatches,
-    allAdjustments,
-    WOMEN
+    WOMEN,
+    adjustments
   );
 
   const menATable = document.getElementById("menTableA");
@@ -481,161 +482,127 @@ async function renderTables() {
   const womenTable = document.getElementById("womenTable");
 
   if (menATable) {
-    menATable.innerHTML = tableHTML(menStatsA, MEN_A);
+    menATable.innerHTML = tableHTML(
+      menAStats,
+      MEN_A
+    );
   }
 
   if (menBTable) {
-    menBTable.innerHTML = tableHTML(menStatsB, MEN_B);
+    menBTable.innerHTML = tableHTML(
+      menBStats,
+      MEN_B
+    );
   }
 
   if (womenTable) {
-    womenTable.innerHTML = tableHTML(womenStats, WOMEN);
+    womenTable.innerHTML = tableHTML(
+      womenStats,
+      WOMEN
+    );
   }
 }
 
-// ===============================
-// AJUSTE DE PUNTOS
-// ===============================
-
-async function editTeamPoints(team) {
-  if (!session) {
-    alert("Debes iniciar sesión como organizador.");
-    return;
-  }
-
-  const value = prompt(
-    `¿Cuántos puntos quieres ajustar para ${team}?`
-  );
-
-  if (value === null) return;
-
-  const points = Number(value);
-
-  if (Number.isNaN(points)) {
-    alert("Ingresa un número válido.");
-    return;
-  }
-
-  const { error } = await db
-    .from("point_adjustments")
-    .upsert({
-      team,
-      points
-    });
-
-  if (error) {
-    alert("Error: " + error.message);
-    return;
-  }
-
-  await refresh();
-}
-
-// ===============================
-// ORDENAR PARTIDOS POR FECHA
-// ===============================
+// ======================================================
+// ORDEN DE PARTIDOS
+// ======================================================
 
 function sortMatchesByDate(matches) {
-  return [...matches].sort((a, b) => {
+
+  return matches.slice().sort(function (a, b) {
+
     const aDay = Number(a.day);
     const bDay = Number(b.day);
 
     const aDate =
-      MATCH_DATE_VALUES[aDay] ||
-      a.date ||
-      "9999-12-31";
+      MATCH_DATE_VALUES[aDay] || "9999-12-31";
 
     const bDate =
-      MATCH_DATE_VALUES[bDay] ||
-      b.date ||
-      "9999-12-31";
+      MATCH_DATE_VALUES[bDay] || "9999-12-31";
 
-    if (aDate !== bDate) {
-      return aDate.localeCompare(bDate);
-    }
-
-    return aDay - bDay;
+    return aDate.localeCompare(bDate);
   });
 }
 
-// ===============================
-// FORMATO DE FECHA
-// ===============================
+// ======================================================
+// FECHA
+// ======================================================
 
 function getMatchDate(match) {
+
   const day = Number(match.day);
 
-  if (MATCH_DATES[day]) {
-    return MATCH_DATES[day];
-  }
-
-  if (match.date) {
-    const date = new Date(match.date);
-
-    if (!Number.isNaN(date.getTime())) {
-      return date.toLocaleDateString("es-GT", {
-        day: "numeric",
-        month: "long"
-      });
-    }
-  }
-
-  return "Fecha por confirmar";
+  return MATCH_DATES[day] || "Fecha por confirmar";
 }
 
-// ===============================
-// RENDER PARTIDOS
-// ===============================
+// ======================================================
+// PARTIDOS
+// ======================================================
 
 async function renderMatches() {
+
   const container =
     document.getElementById("matchesList") ||
     document.getElementById("matches");
 
   if (!container) return;
 
-  const { data: matches, error } = await db
+  const result = await db
     .from("matches")
     .select("*");
 
-  if (error) {
-    console.error(error);
+  if (result.error) {
+
+    console.error(result.error);
+
     container.innerHTML =
-      `<p class="muted">No se pudieron cargar los partidos.</p>`;
+      "<p>No se pudieron cargar los partidos.</p>";
+
     return;
   }
 
-  const sorted = sortMatchesByDate(matches || []);
+  const matches = sortMatchesByDate(
+    result.data || []
+  );
 
-  if (!sorted.length) {
+  if (!matches.length) {
+
     container.innerHTML =
-      `<p class="muted">No hay partidos registrados.</p>`;
+      "<p>No hay partidos registrados.</p>";
+
     return;
   }
 
   let html = "";
-  let lastDate = "";
+  let previousDate = "";
 
-  sorted.forEach(match => {
+  matches.forEach(function (match) {
+
     const date = getMatchDate(match);
 
-    if (date !== lastDate) {
+    if (date !== previousDate) {
+
       html += `
         <div class="match-date-header">
           ${date}
         </div>
       `;
 
-      lastDate = date;
+      previousDate = date;
     }
+
+    const home = normalizeTeam(
+      match.home_team
+    );
+
+    const away = normalizeTeam(
+      match.away_team
+    );
 
     const gender =
       String(match.gender || "").toUpperCase() === "F"
         ? "MUJERES"
         : "HOMBRES";
-
-    const home = normalizeTeam(match.home_team);
-    const away = normalizeTeam(match.away_team);
 
     const hasScore =
       match.home_score !== null &&
@@ -644,8 +611,8 @@ async function renderMatches() {
       match.away_score !== undefined;
 
     const score = hasScore
-      ? `<div class="score">${match.home_score} - ${match.away_score}</div>`
-      : `<div class="score">VS</div>`;
+      ? `${match.home_score} - ${match.away_score}`
+      : "VS";
 
     html += `
       <div class="card match-card">
@@ -656,27 +623,33 @@ async function renderMatches() {
         </div>
 
         <div class="match-teams">
-          <div class="team home-team">
+
+          <div class="team">
             <strong>${home}</strong>
           </div>
 
-          ${score}
+          <div class="score">
+            ${score}
+          </div>
 
-          <div class="team away-team">
+          <div class="team">
             <strong>${away}</strong>
           </div>
+
         </div>
 
         ${
           session
             ? `
               <div class="match-actions">
+
                 <button
                   class="outline"
                   onclick="editMatch(${match.id})"
                 >
                   ✏️ Editar marcador
                 </button>
+
               </div>
             `
             : ""
@@ -689,75 +662,95 @@ async function renderMatches() {
   container.innerHTML = html;
 }
 
-// ===============================
+// ======================================================
 // PRÓXIMO PARTIDO
-// ===============================
+// ======================================================
 
 async function renderNext() {
+
   const container =
     document.getElementById("nextMatch") ||
     document.getElementById("next-match");
 
   if (!container) return;
 
-  const { data: matches, error } = await db
+  const result = await db
     .from("matches")
     .select("*");
 
-  if (error) {
-    console.error(error);
+  if (result.error) {
+    console.error(result.error);
     return;
   }
 
-  const sorted = sortMatchesByDate(matches || []);
-
-  const next = sorted.find(match =>
-    match.home_score === null ||
-    match.home_score === undefined ||
-    match.away_score === null ||
-    match.away_score === undefined
+  const matches = sortMatchesByDate(
+    result.data || []
   );
 
+  const next = matches.find(function (match) {
+
+    return (
+      match.home_score === null ||
+      match.home_score === undefined ||
+      match.away_score === null ||
+      match.away_score === undefined
+    );
+
+  });
+
   if (!next) {
+
     container.innerHTML = `
       <div class="card">
-        <h3>🏆 Todos los partidos jugados</h3>
+        <h3>🏆 Todos los partidos han terminado</h3>
       </div>
     `;
+
     return;
   }
 
-  const home = normalizeTeam(next.home_team);
-  const away = normalizeTeam(next.away_team);
-  const date = getMatchDate(next);
+  const home = normalizeTeam(
+    next.home_team
+  );
+
+  const away = normalizeTeam(
+    next.away_team
+  );
 
   container.innerHTML = `
     <div class="card next-match-card">
+
       <div class="match-info">
         <span>PRÓXIMO PARTIDO</span>
-        <span>${date}</span>
+        <span>${getMatchDate(next)}</span>
       </div>
 
       <div class="match-teams">
+
         <div class="team">
           <strong>${home}</strong>
         </div>
 
-        <div class="score">VS</div>
+        <div class="score">
+          VS
+        </div>
 
         <div class="team">
           <strong>${away}</strong>
         </div>
+
       </div>
+
     </div>
   `;
 }
 
-// ===============================
+// ======================================================
 // EDITAR PARTIDO
-// ===============================
+// ======================================================
 
 async function editMatch(id) {
+
   if (!session) {
     alert("Debes iniciar sesión.");
     return;
@@ -765,24 +758,33 @@ async function editMatch(id) {
 
   editingMatchId = id;
 
-  const { data: match, error } = await db
+  const result = await db
     .from("matches")
     .select("*")
     .eq("id", id)
     .single();
 
-  if (error) {
-    alert("Error al cargar partido: " + error.message);
+  if (result.error) {
+    alert(result.error.message);
     return;
   }
 
-  const title = document.getElementById("editMatchTitle");
-  const homeScore = document.getElementById("homeScore");
-  const awayScore = document.getElementById("awayScore");
+  const match = result.data;
+
+  const title =
+    document.getElementById("editMatchTitle");
+
+  const homeScore =
+    document.getElementById("homeScore");
+
+  const awayScore =
+    document.getElementById("awayScore");
 
   if (title) {
     title.textContent =
-      `${normalizeTeam(match.home_team)} vs ${normalizeTeam(match.away_team)}`;
+      normalizeTeam(match.home_team) +
+      " vs " +
+      normalizeTeam(match.away_team);
   }
 
   if (homeScore) {
@@ -798,25 +800,31 @@ async function editMatch(id) {
   openModal("editMatchModal");
 }
 
-// ===============================
-// GUARDAR MARCADOR
-// ===============================
+// ======================================================
+// GUARDAR PARTIDO
+// ======================================================
 
 async function saveMatch() {
-  if (!session || !editingMatchId) return;
 
-  const homeScoreEl = document.getElementById("homeScore");
-  const awayScoreEl = document.getElementById("awayScore");
+  if (!session || !editingMatchId) {
+    return;
+  }
+
+  const homeScoreElement =
+    document.getElementById("homeScore");
+
+  const awayScoreElement =
+    document.getElementById("awayScore");
 
   const homeScore =
-    homeScoreEl.value === ""
+    homeScoreElement.value === ""
       ? null
-      : Number(homeScoreEl.value);
+      : Number(homeScoreElement.value);
 
   const awayScore =
-    awayScoreEl.value === ""
+    awayScoreElement.value === ""
       ? null
-      : Number(awayScoreEl.value);
+      : Number(awayScoreElement.value);
 
   if (
     homeScore !== null &&
@@ -834,7 +842,7 @@ async function saveMatch() {
     return;
   }
 
-  const { error } = await db
+  const result = await db
     .from("matches")
     .update({
       home_score: homeScore,
@@ -842,290 +850,93 @@ async function saveMatch() {
     })
     .eq("id", editingMatchId);
 
-  if (error) {
-    alert("Error al guardar: " + error.message);
+  if (result.error) {
+    alert(result.error.message);
     return;
   }
-
-  closeModals();
 
   editingMatchId = null;
 
-  await refresh();
-}
-
-// ===============================
-// GOLEADORES
-// ===============================
-
-async function renderScorers() {
-  const { data: scorers, error } = await db
-    .from("scorers")
-    .select("*")
-    .order("goals", { ascending: false });
-
-  if (error) {
-    console.error(error);
-    return;
-  }
-
-  const men = (scorers || []).filter(
-    s => String(s.gender || "").toUpperCase() === "M"
-  );
-
-  const women = (scorers || []).filter(
-    s => String(s.gender || "").toUpperCase() === "F"
-  );
-
-  const menContainer =
-    document.getElementById("menScorers") ||
-    document.getElementById("scorersMen");
-
-  const womenContainer =
-    document.getElementById("womenScorers") ||
-    document.getElementById("scorersWomen");
-
-  if (menContainer) {
-    menContainer.innerHTML = scorerRows(men);
-  }
-
-  if (womenContainer) {
-    womenContainer.innerHTML = scorerRows(women);
-  }
-}
-
-function scorerRows(scorers) {
-  if (!scorers.length) {
-    return `<p class="muted">No hay goleadores registrados.</p>`;
-  }
-
-  return `
-    <div class="scorers-list">
-      ${scorers
-        .map((scorer, index) => `
-          <div class="scorer-row">
-            <div>
-              <strong>${index + 1}. ${scorer.player}</strong>
-              <small>${normalizeTeam(scorer.team)}</small>
-            </div>
-
-            <strong>${scorer.goals} ⚽</strong>
-
-            ${
-              session
-                ? `
-                  <div class="scorer-actions">
-                    <button
-                      class="outline"
-                      onclick="editScorer(${scorer.id})"
-                    >
-                      ✏️
-                    </button>
-
-                    <button
-                      class="outline"
-                      onclick="deleteScorer(${scorer.id})"
-                    >
-                      🗑️
-                    </button>
-                  </div>
-                `
-                : ""
-            }
-          </div>
-        `)
-        .join("")}
-    </div>
-  `;
-}
-
-// ===============================
-// AGREGAR GOLEADOR
-// ===============================
-
-async function addScorer() {
-  if (!session) {
-    alert("Debes iniciar sesión.");
-    return;
-  }
-
-  const player = prompt("Nombre del jugador:");
-  if (!player) return;
-
-  const team = prompt("Equipo:");
-  if (!team) return;
-
-  const genderInput =
-    prompt("Género: M = Hombres / F = Mujeres");
-
-  if (!genderInput) return;
-
-  const gender = genderInput.toUpperCase();
-
-  if (gender !== "M" && gender !== "F") {
-    alert("Usa M o F.");
-    return;
-  }
-
-  const goalsInput = prompt("Cantidad de goles:", "0");
-  if (goalsInput === null) return;
-
-  const goals = Number(goalsInput);
-
-  if (Number.isNaN(goals) || goals < 0) {
-    alert("Cantidad de goles inválida.");
-    return;
-  }
-
-  const { error } = await db
-    .from("scorers")
-    .insert({
-      player,
-      team: normalizeTeam(team),
-      gender,
-      goals
-    });
-
-  if (error) {
-    alert("Error: " + error.message);
-    return;
-  }
+  closeModals();
 
   await refresh();
 }
 
-// ===============================
-// EDITAR GOLEADOR
-// ===============================
+// ======================================================
+// MODALES
+// ======================================================
 
-async function editScorer(id) {
-  if (!session) return;
+function openModal(id) {
 
-  const { data: scorer, error } = await db
-    .from("scorers")
-    .select("*")
-    .eq("id", id)
-    .single();
+  const modal = document.getElementById(id);
 
-  if (error) {
-    alert(error.message);
-    return;
-  }
+  if (!modal) return;
 
-  const player = prompt(
-    "Nombre del jugador:",
-    scorer.player
-  );
-
-  if (player === null) return;
-
-  const team = prompt(
-    "Equipo:",
-    scorer.team
-  );
-
-  if (team === null) return;
-
-  const goalsInput = prompt(
-    "Goles:",
-    scorer.goals
-  );
-
-  if (goalsInput === null) return;
-
-  const goals = Number(goalsInput);
-
-  if (Number.isNaN(goals) || goals < 0) {
-    alert("Cantidad inválida.");
-    return;
-  }
-
-  const { error: updateError } = await db
-    .from("scorers")
-    .update({
-      player,
-      team: normalizeTeam(team),
-      goals
-    })
-    .eq("id", id);
-
-  if (updateError) {
-    alert(updateError.message);
-    return;
-  }
-
-  await refresh();
+  modal.style.display = "flex";
+  modal.classList.add("show");
 }
 
-// ===============================
-// ELIMINAR GOLEADOR
-// ===============================
+function closeModals() {
 
-async function deleteScorer(id) {
-  if (!session) return;
-
-  if (!confirm("¿Eliminar este goleador?")) {
-    return;
-  }
-
-  const { error } = await db
-    .from("scorers")
-    .delete()
-    .eq("id", id);
-
-  if (error) {
-    alert(error.message);
-    return;
-  }
-
-  await refresh();
+  document.querySelectorAll(".modal").forEach(
+    function (modal) {
+      modal.style.display = "none";
+      modal.classList.remove("show");
+    }
+  );
 }
 
-// ===============================
+// ======================================================
 // SANCIONES
-// ===============================
+// ======================================================
 
 async function renderSanctions() {
+
   const container =
     document.getElementById("sanctionsList") ||
     document.getElementById("sanctions");
 
   if (!container) return;
 
-  const { data: sanctions, error } = await db
+  const result = await db
     .from("sanctions")
     .select("*")
-    .order("created_at", { ascending: false });
+    .order("created_at", {
+      ascending: false
+    });
 
-  if (error) {
-    console.error(error);
+  if (result.error) {
 
-    container.innerHTML = `
-      <p class="muted">
-        No se pudieron cargar las sanciones.
-      </p>
-    `;
+    console.error(result.error);
+
+    container.innerHTML =
+      "<p>No se pudieron cargar las sanciones.</p>";
 
     return;
   }
 
-  if (!sanctions || sanctions.length === 0) {
+  const sanctions = result.data || [];
+
+  if (!sanctions.length) {
+
     container.innerHTML = `
       <div class="card sanction-card">
-        <p class="muted">
-          No hay sanciones registradas.
-        </p>
+        <p>No hay sanciones registradas.</p>
       </div>
     `;
 
     return;
   }
 
-  container.innerHTML = sanctions
-    .map(sanction => `
+  let html = "";
+
+  sanctions.forEach(function (sanction) {
+
+    html += `
       <div class="card sanction-card">
 
         <div class="sanction-header">
+
           <div>
             <strong>
               ${sanction.player || "Jugador"}
@@ -1139,17 +950,12 @@ async function renderSanctions() {
           <span class="sanction-type">
             ${sanction.type || "Sanción"}
           </span>
+
         </div>
 
-        ${
-          sanction.description
-            ? `
-              <div class="sanction-description">
-                ${sanction.description}
-              </div>
-            `
-            : ""
-        }
+        <div class="sanction-description">
+          ${sanction.description || ""}
+        </div>
 
         ${
           session
@@ -1176,78 +982,92 @@ async function renderSanctions() {
         }
 
       </div>
-    `)
-    .join("");
+    `;
+  });
+
+  container.innerHTML = html;
 }
 
-// ===============================
+// ======================================================
 // AGREGAR SANCIÓN
-// ===============================
+// ======================================================
 
 async function addSanction() {
+
   if (!session) {
-    alert("Debes iniciar sesión como organizador.");
+    alert("Debes iniciar sesión.");
     return;
   }
 
-  const player = prompt("Nombre del jugador:");
+  const player = prompt(
+    "Nombre del jugador:"
+  );
 
   if (!player) return;
 
-  const team = prompt("Equipo:");
+  const team = prompt(
+    "Equipo:"
+  );
 
   if (!team) return;
 
   const type = prompt(
-    "Tipo de sanción:",
-    "Tarjeta"
+    "Tipo de sanción:"
   );
 
   if (!type) return;
 
   const description = prompt(
-    "Descripción de la sanción:"
+    "Descripción:"
   );
 
   if (description === null) return;
 
-  const { error } = await db
+  const result = await db
     .from("sanctions")
     .insert({
-      player,
+      player: player,
       team: normalizeTeam(team),
-      type,
-      description
+      type: type,
+      description: description
     });
 
-  if (error) {
-    alert("Error al agregar sanción: " + error.message);
+  if (result.error) {
+
+    alert(
+      "Error al agregar sanción: " +
+      result.error.message
+    );
+
     return;
   }
 
   await refresh();
 }
 
-// ===============================
+// ======================================================
 // EDITAR SANCIÓN
-// ===============================
+// ======================================================
 
 async function editSanction(id) {
+
   if (!session) {
     alert("Debes iniciar sesión.");
     return;
   }
 
-  const { data: sanction, error } = await db
+  const result = await db
     .from("sanctions")
     .select("*")
     .eq("id", id)
     .single();
 
-  if (error) {
-    alert("Error: " + error.message);
+  if (result.error) {
+    alert(result.error.message);
     return;
   }
+
+  const sanction = result.data;
 
   const player = prompt(
     "Nombre del jugador:",
@@ -1277,120 +1097,423 @@ async function editSanction(id) {
 
   if (description === null) return;
 
-  const { error: updateError } = await db
+  const updateResult = await db
     .from("sanctions")
     .update({
-      player,
+      player: player,
       team: normalizeTeam(team),
-      type,
-      description
+      type: type,
+      description: description
     })
     .eq("id", id);
 
-  if (updateError) {
+  if (updateResult.error) {
+
     alert(
-      "Error al actualizar sanción: " +
-      updateError.message
+      "Error al editar: " +
+      updateResult.error.message
     );
+
     return;
   }
 
   await refresh();
 }
 
-// ===============================
+// ======================================================
 // ELIMINAR SANCIÓN
-// ===============================
+// ======================================================
 
 async function deleteSanction(id) {
+
   if (!session) {
     alert("Debes iniciar sesión.");
     return;
   }
 
-  if (!confirm("¿Seguro que quieres eliminar esta sanción?")) {
-    return;
-  }
+  const confirmed = confirm(
+    "¿Seguro que quieres eliminar esta sanción?"
+  );
 
-  const { error } = await db
+  if (!confirmed) return;
+
+  const result = await db
     .from("sanctions")
     .delete()
     .eq("id", id);
 
-  if (error) {
+  if (result.error) {
+
     alert(
-      "Error al eliminar sanción: " +
-      error.message
+      "Error al eliminar: " +
+      result.error.message
     );
+
     return;
   }
 
   await refresh();
 }
 
-// ===============================
-// GRADO
-// ===============================
+// ======================================================
+// GOLEADORES
+// ======================================================
 
-async function renderCleanliness() {
-  const container =
-    document.getElementById("cleanlinessTable");
+async function renderScorers() {
 
-  if (!container) return;
-
-  const { data, error } = await db
-    .from("cleanliness_scores")
+  const result = await db
+    .from("scorers")
     .select("*")
-    .order("points", { ascending: false });
+    .order("goals", {
+      ascending: false
+    });
 
-  if (error) {
-    console.error(error);
+  if (result.error) {
+    console.error(result.error);
     return;
   }
 
-  container.innerHTML = (data || [])
-    .map((row, index) => `
-      <tr>
-        <td>${index + 1}</td>
-        <td><strong>${row.grade}</strong></td>
-        <td>${row.points}</td>
-        <td>${row.reason || ""}</td>
+  const scorers = result.data || [];
+
+  const men = scorers.filter(function (scorer) {
+    return String(scorer.gender || "").toUpperCase() === "M";
+  });
+
+  const women = scorers.filter(function (scorer) {
+    return String(scorer.gender || "").toUpperCase() === "F";
+  });
+
+  const menContainer =
+    document.getElementById("menScorers") ||
+    document.getElementById("scorersMen");
+
+  const womenContainer =
+    document.getElementById("womenScorers") ||
+    document.getElementById("scorersWomen");
+
+  if (menContainer) {
+    menContainer.innerHTML =
+      scorerRows(men);
+  }
+
+  if (womenContainer) {
+    womenContainer.innerHTML =
+      scorerRows(women);
+  }
+}
+
+function scorerRows(scorers) {
+
+  if (!scorers.length) {
+    return "<p>No hay goleadores registrados.</p>";
+  }
+
+  return scorers.map(function (scorer, index) {
+
+    return `
+      <div class="scorer-row">
+
+        <div>
+          <strong>
+            ${index + 1}. ${scorer.player}
+          </strong>
+
+          <small>
+            ${normalizeTeam(scorer.team)}
+          </small>
+        </div>
+
+        <strong>
+          ${scorer.goals} ⚽
+        </strong>
+
         ${
           session
             ? `
-              <td>
+              <div>
+
                 <button
                   class="outline"
-                  onclick="editCleanliness(${row.id})"
+                  onclick="editScorer(${scorer.id})"
                 >
                   ✏️
                 </button>
-              </td>
+
+                <button
+                  class="outline"
+                  onclick="deleteScorer(${scorer.id})"
+                >
+                  🗑️
+                </button>
+
+              </div>
             `
             : ""
         }
-      </tr>
-    `)
-    .join("");
+
+      </div>
+    `;
+
+  }).join("");
 }
 
-// ===============================
-// EDITAR GRADO
-// ===============================
+// ======================================================
+// AGREGAR GOLEADOR
+// ======================================================
 
-async function editCleanliness(id) {
+async function addScorer() {
+
+  if (!session) {
+    alert("Debes iniciar sesión.");
+    return;
+  }
+
+  const player = prompt(
+    "Nombre del jugador:"
+  );
+
+  if (!player) return;
+
+  const team = prompt(
+    "Equipo:"
+  );
+
+  if (!team) return;
+
+  const gender = prompt(
+    "Escribe M para hombres o F para mujeres:"
+  );
+
+  if (!gender) return;
+
+  const finalGender =
+    gender.toUpperCase();
+
+  if (
+    finalGender !== "M" &&
+    finalGender !== "F"
+  ) {
+    alert("Debes escribir M o F.");
+    return;
+  }
+
+  const goalsInput = prompt(
+    "Cantidad de goles:",
+    "0"
+  );
+
+  if (goalsInput === null) return;
+
+  const goals = Number(goalsInput);
+
+  if (
+    Number.isNaN(goals) ||
+    goals < 0
+  ) {
+    alert("Cantidad inválida.");
+    return;
+  }
+
+  const result = await db
+    .from("scorers")
+    .insert({
+      player: player,
+      team: normalizeTeam(team),
+      gender: finalGender,
+      goals: goals
+    });
+
+  if (result.error) {
+    alert(result.error.message);
+    return;
+  }
+
+  await refresh();
+}
+
+// ======================================================
+// EDITAR GOLEADOR
+// ======================================================
+
+async function editScorer(id) {
+
   if (!session) return;
 
-  const { data: row, error } = await db
+  const result = await db
+    .from("scorers")
+    .select("*")
+    .eq("id", id)
+    .single();
+
+  if (result.error) {
+    alert(result.error.message);
+    return;
+  }
+
+  const scorer = result.data;
+
+  const player = prompt(
+    "Nombre:",
+    scorer.player
+  );
+
+  if (player === null) return;
+
+  const team = prompt(
+    "Equipo:",
+    scorer.team
+  );
+
+  if (team === null) return;
+
+  const goalsInput = prompt(
+    "Goles:",
+    scorer.goals
+  );
+
+  if (goalsInput === null) return;
+
+  const goals = Number(goalsInput);
+
+  if (
+    Number.isNaN(goals) ||
+    goals < 0
+  ) {
+    alert("Cantidad inválida.");
+    return;
+  }
+
+  const updateResult = await db
+    .from("scorers")
+    .update({
+      player: player,
+      team: normalizeTeam(team),
+      goals: goals
+    })
+    .eq("id", id);
+
+  if (updateResult.error) {
+    alert(updateResult.error.message);
+    return;
+  }
+
+  await refresh();
+}
+
+// ======================================================
+// ELIMINAR GOLEADOR
+// ======================================================
+
+async function deleteScorer(id) {
+
+  if (!session) return;
+
+  if (!confirm("¿Eliminar este goleador?")) {
+    return;
+  }
+
+  const result = await db
+    .from("scorers")
+    .delete()
+    .eq("id", id);
+
+  if (result.error) {
+    alert(result.error.message);
+    return;
+  }
+
+  await refresh();
+}
+
+// ======================================================
+// GRADO
+// ======================================================
+
+async function renderCleanliness() {
+
+  const container =
+    document.getElementById(
+      "cleanlinessTable"
+    );
+
+  if (!container) return;
+
+  const result = await db
+    .from("cleanliness_scores")
+    .select("*")
+    .order("points", {
+      ascending: false
+    });
+
+  if (result.error) {
+    console.error(result.error);
+    return;
+  }
+
+  const rows = result.data || [];
+
+  container.innerHTML = rows.map(
+    function (row, index) {
+
+      return `
+        <tr>
+
+          <td>${index + 1}</td>
+
+          <td>
+            <strong>${row.grade}</strong>
+          </td>
+
+          <td>
+            ${row.points}
+          </td>
+
+          <td>
+            ${row.reason || ""}
+          </td>
+
+          ${
+            session
+              ? `
+                <td>
+                  <button
+                    class="outline"
+                    onclick="editCleanliness(${row.id})"
+                  >
+                    ✏️
+                  </button>
+                </td>
+              `
+              : ""
+          }
+
+        </tr>
+      `;
+
+    }
+  ).join("");
+}
+
+// ======================================================
+// EDITAR GRADO
+// ======================================================
+
+async function editCleanliness(id) {
+
+  if (!session) return;
+
+  const result = await db
     .from("cleanliness_scores")
     .select("*")
     .eq("id", id)
     .single();
 
-  if (error) {
-    alert(error.message);
+  if (result.error) {
+    alert(result.error.message);
     return;
   }
+
+  const row = result.data;
 
   const pointsInput = prompt(
     "Puntos:",
@@ -1413,26 +1536,26 @@ async function editCleanliness(id) {
 
   if (reason === null) return;
 
-  const { error: updateError } = await db
+  const updateResult = await db
     .from("cleanliness_scores")
     .update({
-      points,
-      reason,
+      points: points,
+      reason: reason,
       updated_at: new Date().toISOString()
     })
     .eq("id", id);
 
-  if (updateError) {
-    alert(updateError.message);
+  if (updateResult.error) {
+    alert(updateResult.error.message);
     return;
   }
 
   await refresh();
 }
 
-// ===============================
+// ======================================================
 // EXPORTAR FUNCIONES
-// ===============================
+// ======================================================
 
 window.refresh = refresh;
 
