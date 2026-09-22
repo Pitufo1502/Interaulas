@@ -51,14 +51,8 @@ const MATCH_DATES = {
   5: "2026-09-16",
   6: "2026-09-17",
   7: "2026-09-18",
-
-  // IMPORTANTE:
-  // Partido 9 = 22 de septiembre
-  // Partido 8 = 23 de septiembre
-
   9: "2026-09-22",
   8: "2026-09-23",
-
   10: "2026-09-24",
   11: "2026-09-25",
   12: "2026-09-28",
@@ -89,7 +83,7 @@ const MATCH_DATES = {
 
 
 // ============================================================
-// NOMBRES ANTIGUOS → NOMBRES OFICIALES
+// EQUIPOS ANTIGUOS
 // ============================================================
 
 const ALIASES = {
@@ -110,8 +104,6 @@ const ALIASES = {
 
 let currentSession = null;
 let editingMatchId = null;
-let editingSanctionId = null;
-let editingScorerId = null;
 
 
 // ============================================================
@@ -122,11 +114,11 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   console.log("INTERAULAS: DOM cargado");
 
+  setupButtons();
+
   await checkSession();
 
   await refreshAll();
-
-  setupButtons();
 
 });
 
@@ -137,12 +129,11 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 function setupButtons() {
 
-  // LOGIN
   const loginBtn = document.getElementById("loginBtn");
 
   if (loginBtn) {
 
-    loginBtn.addEventListener("click", () => {
+    loginBtn.onclick = function () {
 
       if (currentSession) {
 
@@ -154,40 +145,37 @@ function setupButtons() {
           document.getElementById("authModal");
 
         if (modal) {
+
+          modal.classList.remove("hidden");
           modal.style.display = "flex";
+
         }
 
       }
 
-    });
+    };
 
   }
 
 
-  // AGREGAR SANCIÓN
   const addSanctionBtn =
     document.getElementById("addSanctionBtn");
 
   if (addSanctionBtn) {
 
-    addSanctionBtn.addEventListener(
-      "click",
-      openSanctionModal
-    );
+    addSanctionBtn.onclick =
+      openSanctionModal;
 
   }
 
 
-  // AGREGAR GOLEADOR
   const addScorerBtn =
     document.getElementById("addScorerBtn");
 
   if (addScorerBtn) {
 
-    addScorerBtn.addEventListener(
-      "click",
-      openScorerModal
-    );
+    addScorerBtn.onclick =
+      openScorerModal;
 
   }
 
@@ -202,18 +190,31 @@ async function checkSession() {
 
   try {
 
-    const result =
-      await db.auth.getSession();
+    const {
+      data,
+      error
+    } = await db.auth.getSession();
+
+    if (error) {
+
+      console.error(
+        "Error obteniendo sesión:",
+        error
+      );
+
+      return;
+
+    }
 
     currentSession =
-      result.data.session || null;
+      data?.session || null;
 
     updateAuthUI();
 
   } catch (error) {
 
     console.error(
-      "Error al comprobar sesión:",
+      "Error comprobando sesión:",
       error
     );
 
@@ -241,7 +242,7 @@ async function login() {
   if (!emailInput || !passwordInput) {
 
     console.error(
-      "No se encontraron los campos de login."
+      "No se encontraron email/password."
     );
 
     return;
@@ -259,8 +260,10 @@ async function login() {
   if (!email || !password) {
 
     if (message) {
+
       message.textContent =
         "Ingresa tu correo y contraseña.";
+
     }
 
     return;
@@ -268,47 +271,77 @@ async function login() {
   }
 
 
-  const result =
-    await db.auth.signInWithPassword({
+  if (message) {
+
+    message.textContent =
+      "Iniciando sesión...";
+
+  }
+
+
+  try {
+
+    const {
+      data,
+      error
+    } = await db.auth.signInWithPassword({
       email,
       password
     });
 
 
-  if (result.error) {
+    if (error) {
+
+      console.error(
+        "Error de login:",
+        error
+      );
+
+      if (message) {
+
+        message.textContent =
+          "Correo o contraseña incorrectos.";
+
+      }
+
+      return;
+
+    }
+
+
+    currentSession =
+      data.session;
+
+
+    emailInput.value = "";
+    passwordInput.value = "";
+
+    if (message) {
+      message.textContent = "";
+    }
+
+
+    closeModal("authModal");
+
+    updateAuthUI();
+
+    await refreshAll();
+
+  } catch (error) {
 
     console.error(
-      "Error de login:",
-      result.error
+      "Error inesperado en login:",
+      error
     );
 
     if (message) {
+
       message.textContent =
-        result.error.message;
+        "Ocurrió un error al iniciar sesión.";
+
     }
 
-    return;
-
   }
-
-
-  currentSession =
-    result.data.session;
-
-
-  closeModal("authModal");
-
-  emailInput.value = "";
-  passwordInput.value = "";
-
-  if (message) {
-    message.textContent = "";
-  }
-
-
-  updateAuthUI();
-
-  await refreshAll();
 
 }
 
@@ -319,7 +352,18 @@ async function login() {
 
 async function logout() {
 
-  await db.auth.signOut();
+  try {
+
+    await db.auth.signOut();
+
+  } catch (error) {
+
+    console.error(
+      "Error cerrando sesión:",
+      error
+    );
+
+  }
 
   currentSession = null;
 
@@ -331,7 +375,7 @@ async function logout() {
 
 
 // ============================================================
-// ACTUALIZAR UI DE LOGIN
+// UI LOGIN
 // ============================================================
 
 function updateAuthUI() {
@@ -379,22 +423,59 @@ function updateAuthUI() {
 
 
 // ============================================================
-// REFRESH GENERAL
+// REFRESH
 // ============================================================
 
 async function refreshAll() {
 
-  console.log("INTERAULAS: actualizando datos...");
+  console.log(
+    "INTERAULAS: actualizando datos..."
+  );
 
-  await loadMatches();
 
-  await loadSanctions();
+  try {
+    await loadMatches();
+  } catch (error) {
+    console.error(
+      "Error cargando partidos:",
+      error
+    );
+  }
 
-  await loadScorers();
 
-  await loadCleanliness();
+  try {
+    await loadSanctions();
+  } catch (error) {
+    console.error(
+      "Error cargando sanciones:",
+      error
+    );
+  }
 
-  console.log("INTERAULAS: datos cargados.");
+
+  try {
+    await loadScorers();
+  } catch (error) {
+    console.error(
+      "Error cargando goleadores:",
+      error
+    );
+  }
+
+
+  try {
+    await loadCleanliness();
+  } catch (error) {
+    console.error(
+      "Error cargando grado:",
+      error
+    );
+  }
+
+
+  console.log(
+    "INTERAULAS: datos cargados."
+  );
 
 }
 
@@ -405,9 +486,7 @@ async function refreshAll() {
 
 function normalizeTeam(team) {
 
-  if (!team) {
-    return "";
-  }
+  if (!team) return "";
 
   const name =
     String(team).trim();
@@ -461,17 +540,19 @@ function getGender(home, away) {
 
 async function loadMatches() {
 
-  const result =
-    await db
-      .from("matches")
-      .select("*");
+  const {
+    data,
+    error
+  } = await db
+    .from("matches")
+    .select("*");
 
 
-  if (result.error) {
+  if (error) {
 
     console.error(
       "Error cargando partidos:",
-      result.error
+      error
     );
 
     return;
@@ -480,7 +561,7 @@ async function loadMatches() {
 
 
   const matches =
-    result.data || [];
+    data || [];
 
 
   renderMatches(matches);
@@ -555,6 +636,10 @@ function getMatchDate(match) {
 }
 
 
+// ============================================================
+// FECHA BONITA
+// ============================================================
+
 function formatDate(dateString) {
 
   if (!dateString) {
@@ -569,7 +654,9 @@ function formatDate(dateString) {
 
 
   if (isNaN(date.getTime())) {
+
     return dateString;
+
   }
 
 
@@ -586,7 +673,7 @@ function formatDate(dateString) {
 
 
 // ============================================================
-// ORDENAR PARTIDOS
+// ORDENAR
 // ============================================================
 
 function sortMatchesByDate(matches) {
@@ -683,7 +770,7 @@ function hasScore(match) {
 
 
 // ============================================================
-// RENDER PARTIDOS
+// RENDER HORARIO
 // ============================================================
 
 function renderMatches(matches) {
@@ -695,7 +782,7 @@ function renderMatches(matches) {
   if (!container) {
 
     console.error(
-      "No existe #matches en index.html"
+      "No existe #matches."
     );
 
     return;
@@ -710,7 +797,7 @@ function renderMatches(matches) {
   if (!sorted.length) {
 
     container.innerHTML = `
-      <div class="empty-state">
+      <div class="empty">
         No hay partidos registrados.
       </div>
     `;
@@ -720,125 +807,102 @@ function renderMatches(matches) {
   }
 
 
+  // Una tarjeta por día
   container.innerHTML =
-    sorted
-      .map(matchCardHTML)
-      .join("");
+    sorted.map(match => {
 
-}
+      const number =
+        getMatchNumber(match);
 
+      const date =
+        getMatchDate(match);
 
-// ============================================================
-// TARJETA DE PARTIDO
-// ============================================================
+      const home =
+        normalizeTeam(match.home_team);
 
-function matchCardHTML(match) {
+      const away =
+        normalizeTeam(match.away_team);
 
-  const home =
-    normalizeTeam(match.home_team);
+      const gender =
+        getGender(home, away);
 
-  const away =
-    normalizeTeam(match.away_team);
+      const homeScore =
+        getHomeScore(match);
 
+      const awayScore =
+        getAwayScore(match);
 
-  const homeScore =
-    getHomeScore(match);
-
-  const awayScore =
-    getAwayScore(match);
-
-
-  const number =
-    getMatchNumber(match);
-
-  const date =
-    getMatchDate(match);
+      const score =
+        hasScore(match)
+          ? `${homeScore} - ${awayScore}`
+          : "VS";
 
 
-  let score = "VS";
+      const editButton =
+        currentSession
+          ? `
+            <button
+              type="button"
+              class="outline edit"
+              onclick="editMatch(${Number(match.id)})">
+              ✏️ Editar
+            </button>
+          `
+          : "";
 
 
-  if (
-    homeScore !== null &&
-    awayScore !== null
-  ) {
+      return `
+        <div class="matchday">
 
-    score =
-      `${homeScore} - ${awayScore}`;
+          <h3>
+            Partido ${number} ·
+            ${escapeHTML(
+              formatDate(date)
+            )}
+            ·
+            ${gender === "M"
+              ? "Hombres"
+              : "Mujeres"}
+          </h3>
 
-  }
+          <div class="match">
 
+            <div class="match-date">
+              ${escapeHTML(
+                date
+              )}
+            </div>
 
-  const gender =
-    getGender(home, away);
+            <div class="match-teams">
 
+              <div class="match-team">
+                ${escapeHTML(home)}
+              </div>
 
-  let adminButton = "";
+              <div class="match-team">
+                ${escapeHTML(away)}
+              </div>
 
+            </div>
 
-  if (currentSession) {
+            <div class="score ${
+              hasScore(match)
+                ? ""
+                : "pending"
+            }">
+              ${score}
+            </div>
 
-    adminButton = `
-      <button
-        type="button"
-        class="admin-button"
-        onclick="editMatch(${Number(match.id)})">
-        ✏️ Editar
-      </button>
-    `;
+            <div class="edit">
+              ${editButton}
+            </div>
 
-  }
+          </div>
 
-
-  return `
-    <div class="match-card">
-
-      <div class="match-info">
-
-        <span>
-          PARTIDO ${number}
-        </span>
-
-        <span>
-          ${escapeHTML(
-            formatDate(date)
-          )}
-        </span>
-
-        <span>
-          ${gender === "M" ? "HOMBRES" : "MUJERES"}
-        </span>
-
-      </div>
-
-
-      <div class="match-teams">
-
-        <div class="team">
-          <strong>
-            ${escapeHTML(home)}
-          </strong>
         </div>
+      `;
 
-
-        <div class="score">
-          ${score}
-        </div>
-
-
-        <div class="team">
-          <strong>
-            ${escapeHTML(away)}
-          </strong>
-        </div>
-
-      </div>
-
-
-      ${adminButton}
-
-    </div>
-  `;
+    }).join("");
 
 }
 
@@ -854,7 +918,13 @@ function renderNext(matches) {
 
 
   if (!container) {
+
+    console.error(
+      "No existe #nextMatch."
+    );
+
     return;
+
   }
 
 
@@ -876,7 +946,6 @@ function renderNext(matches) {
         const dateString =
           getMatchDate(match);
 
-
         if (!dateString) {
           return false;
         }
@@ -896,19 +965,15 @@ function renderNext(matches) {
   if (!upcoming.length) {
 
     container.innerHTML = `
-      <div class="card next-match-card">
+      <div>
 
-        <div class="match-info">
-
-          <span>
-            PRÓXIMO PARTIDO
-          </span>
-
-          <span>
-            No hay partidos próximos.
-          </span>
-
+        <div class="eyebrow">
+          PRÓXIMO PARTIDO
         </div>
+
+        <strong>
+          No hay partidos próximos.
+        </strong>
 
       </div>
     `;
@@ -928,54 +993,50 @@ function renderNext(matches) {
   const away =
     normalizeTeam(next.away_team);
 
+  const gender =
+    getGender(home, away);
+
 
   container.innerHTML = `
-    <div class="card next-match-card">
 
-      <div class="match-info">
+    <div>
 
-        <span>
-          PRÓXIMO PARTIDO
-        </span>
-
-        <span>
-          ${escapeHTML(
-            formatDate(
-              getMatchDate(next)
-            )
-          )}
-        </span>
-
+      <div class="eyebrow">
+        PRÓXIMO PARTIDO
       </div>
 
+      <h2 style="margin:8px 0 5px;">
+        ${escapeHTML(
+          formatDate(
+            getMatchDate(next)
+          )
+        )}
+      </h2>
 
-      <div class="match-teams">
+      <div style="
+        font-size:26px;
+        font-weight:900;
+        margin-top:14px;
+      ">
+        ${escapeHTML(home)}
+        <span style="color:#98a2b3;"> vs </span>
+        ${escapeHTML(away)}
+      </div>
 
-        <div class="team">
-
-          <strong>
-            ${escapeHTML(home)}
-          </strong>
-
-        </div>
-
-
-        <div class="score">
-          VS
-        </div>
-
-
-        <div class="team">
-
-          <strong>
-            ${escapeHTML(away)}
-          </strong>
-
-        </div>
-
+      <div style="
+        margin-top:10px;
+        color:#98a2b3;
+        font-size:13px;
+      ">
+        Partido ${getMatchNumber(next)}
+        ·
+        ${gender === "M"
+          ? "Hombres"
+          : "Mujeres"}
       </div>
 
     </div>
+
   `;
 
 }
@@ -988,29 +1049,33 @@ function renderNext(matches) {
 async function editMatch(id) {
 
   if (!currentSession) {
-    return;
-  }
 
-
-  const result =
-    await db
-      .from("matches")
-      .select("*")
-      .eq("id", id)
-      .single();
-
-
-  if (result.error) {
-
-    alert(result.error.message);
+    alert(
+      "Debes iniciar sesión como organizador."
+    );
 
     return;
 
   }
 
 
-  const match =
-    result.data;
+  const {
+    data: match,
+    error
+  } = await db
+    .from("matches")
+    .select("*")
+    .eq("id", id)
+    .single();
+
+
+  if (error) {
+
+    alert(error.message);
+
+    return;
+
+  }
 
 
   editingMatchId =
@@ -1057,8 +1122,8 @@ async function editMatch(id) {
 
   if (modal) {
 
-    modal.style.display =
-      "flex";
+    modal.classList.remove("hidden");
+    modal.style.display = "flex";
 
   }
 
@@ -1139,19 +1204,20 @@ async function saveMatch() {
   }
 
 
-  const result =
-    await db
-      .from("matches")
-      .update({
-        home_score: homeScore,
-        away_score: awayScore
-      })
-      .eq("id", editingMatchId);
+  const {
+    error
+  } = await db
+    .from("matches")
+    .update({
+      home_score: homeScore,
+      away_score: awayScore
+    })
+    .eq("id", editingMatchId);
 
 
-  if (result.error) {
+  if (error) {
 
-    alert(result.error.message);
+    alert(error.message);
 
     return;
 
@@ -1175,12 +1241,18 @@ async function saveMatch() {
 
 function renderTables(matches) {
 
+  const menContainer =
+    document.getElementById("menTables");
+
+  const womenContainer =
+    document.getElementById("womenTable");
+
+
   const tableA =
     createStandings(
       MEN_A,
       matches
     );
-
 
   const tableB =
     createStandings(
@@ -1188,20 +1260,11 @@ function renderTables(matches) {
       matches
     );
 
-
   const tableWomen =
     createStandings(
       WOMEN,
       matches
     );
-
-
-  const menContainer =
-    document.getElementById("menTables");
-
-
-  const womenContainer =
-    document.getElementById("womenTable");
 
 
   if (menContainer) {
@@ -1215,7 +1278,6 @@ function renderTables(matches) {
         ${standingsHTML(tableA)}
 
       </div>
-
 
       <div class="card">
 
@@ -1233,9 +1295,15 @@ function renderTables(matches) {
   if (womenContainer) {
 
     womenContainer.innerHTML = `
+
       <div class="card">
+
+        <h3>Clasificación</h3>
+
         ${standingsHTML(tableWomen)}
+
       </div>
+
     `;
 
   }
@@ -1244,7 +1312,7 @@ function renderTables(matches) {
 
 
 // ============================================================
-// CREAR TABLA
+// CREAR CLASIFICACIÓN
 // ============================================================
 
 function createStandings(
@@ -1260,21 +1328,13 @@ function createStandings(
     table[team] = {
 
       team,
-
       played: 0,
-
       wins: 0,
-
       draws: 0,
-
       losses: 0,
-
       goalsFor: 0,
-
       goalsAgainst: 0,
-
       goalDifference: 0,
-
       points: 0
 
     };
@@ -1335,7 +1395,6 @@ function createStandings(
 
       table[home].wins++;
       table[away].losses++;
-
       table[home].points += 3;
 
     }
@@ -1344,7 +1403,6 @@ function createStandings(
 
       table[away].wins++;
       table[home].losses++;
-
       table[away].points += 3;
 
     }
@@ -1397,7 +1455,10 @@ function createStandings(
     }
 
 
-    return b.goalsFor - a.goalsFor;
+    return (
+      b.goalsFor -
+      a.goalsFor
+    );
 
   });
 
@@ -1408,79 +1469,90 @@ function createStandings(
 
 
 // ============================================================
-// HTML TABLA DE POSICIONES
+// HTML CLASIFICACIÓN
 // ============================================================
 
 function standingsHTML(rows) {
 
   return `
-    <div class="standings-table">
 
-      <div class="standings-row standings-header">
+    <div class="table-wrap">
 
-        <span>#</span>
-        <span>Equipo</span>
-        <span>PJ</span>
-        <span>G</span>
-        <span>E</span>
-        <span>P</span>
-        <span>GF</span>
-        <span>GC</span>
-        <span>DG</span>
-        <span>PTS</span>
+      <table>
 
-      </div>
+        <thead>
 
+          <tr>
+            <th>#</th>
+            <th>Equipo</th>
+            <th>PJ</th>
+            <th>G</th>
+            <th>E</th>
+            <th>P</th>
+            <th>GF</th>
+            <th>GC</th>
+            <th>DG</th>
+            <th>PTS</th>
+          </tr>
 
-      ${rows.map((row, index) => `
+        </thead>
 
-        <div class="standings-row">
+        <tbody>
 
-          <span>
-            ${index + 1}
-          </span>
+          ${rows.map((row, index) => `
 
-          <span>
-            ${escapeHTML(row.team)}
-          </span>
+            <tr>
 
-          <span>
-            ${row.played}
-          </span>
+              <td class="rank">
+                ${index + 1}
+              </td>
 
-          <span>
-            ${row.wins}
-          </span>
+              <td class="team-name">
+                ${escapeHTML(row.team)}
+              </td>
 
-          <span>
-            ${row.draws}
-          </span>
+              <td>
+                ${row.played}
+              </td>
 
-          <span>
-            ${row.losses}
-          </span>
+              <td>
+                ${row.wins}
+              </td>
 
-          <span>
-            ${row.goalsFor}
-          </span>
+              <td>
+                ${row.draws}
+              </td>
 
-          <span>
-            ${row.goalsAgainst}
-          </span>
+              <td>
+                ${row.losses}
+              </td>
 
-          <span>
-            ${row.goalDifference}
-          </span>
+              <td>
+                ${row.goalsFor}
+              </td>
 
-          <strong>
-            ${row.points}
-          </strong>
+              <td>
+                ${row.goalsAgainst}
+              </td>
 
-        </div>
+              <td>
+                ${row.goalDifference}
+              </td>
 
-      `).join("")}
+              <td class="pts">
+                ${row.points}
+              </td>
+
+            </tr>
+
+          `).join("")}
+
+        </tbody>
+
+      </table>
 
     </div>
+
   `;
 
 }
@@ -1492,17 +1564,19 @@ function standingsHTML(rows) {
 
 async function loadSanctions() {
 
-  const result =
-    await db
-      .from("sanctions")
-      .select("*");
+  const {
+    data,
+    error
+  } = await db
+    .from("sanctions")
+    .select("*");
 
 
-  if (result.error) {
+  if (error) {
 
     console.error(
       "Error cargando sanciones:",
-      result.error
+      error
     );
 
     return;
@@ -1511,7 +1585,7 @@ async function loadSanctions() {
 
 
   renderSanctions(
-    result.data || []
+    data || []
   );
 
 }
@@ -1531,7 +1605,7 @@ function renderSanctions(sanctions) {
   if (!sanctions.length) {
 
     container.innerHTML = `
-      <div class="empty-state">
+      <div class="empty">
         No hay sanciones registradas.
       </div>
     `;
@@ -1542,86 +1616,80 @@ function renderSanctions(sanctions) {
 
 
   container.innerHTML =
-    sanctions
-      .map(sanction => {
+    sanctions.map(sanction => {
 
-        const student =
-          sanction.student ||
-          sanction.player ||
-          sanction.name ||
-          "";
+      const student =
+        sanction.student ||
+        sanction.player ||
+        sanction.name ||
+        "";
 
+      const team =
+        sanction.team ||
+        sanction.grade ||
+        "";
 
-        const team =
-          sanction.team ||
-          sanction.grade ||
-          "";
+      const reason =
+        sanction.reason ||
+        sanction.description ||
+        "";
 
-
-        const reason =
-          sanction.reason ||
-          sanction.description ||
-          "";
-
-
-        const buttons =
-          currentSession
-            ? `
-              <div class="admin-actions">
-
-                <button
-                  type="button"
-                  class="admin-button"
-                  onclick="editSanction(${Number(sanction.id)})">
-                  ✏️ Editar
-                </button>
-
-                <button
-                  type="button"
-                  class="admin-button danger"
-                  onclick="deleteSanction(${Number(sanction.id)})">
-                  🗑️ Eliminar
-                </button>
-
-              </div>
-            `
-            : "";
+      const date =
+        sanction.date ||
+        "";
 
 
-        return `
-          <div class="sanction-card">
+      const actions =
+        currentSession
+          ? `
+            <div class="sanction-actions">
 
-            <div class="sanction-title">
-              ${escapeHTML(student)}
+              <button
+                type="button"
+                class="outline"
+                onclick="editSanction(${Number(sanction.id)})">
+                ✏️ Editar
+              </button>
+
+              <button
+                type="button"
+                class="danger"
+                onclick="deleteSanction(${Number(sanction.id)})">
+                🗑️ Eliminar
+              </button>
+
             </div>
+          `
+          : "";
 
-            <div class="sanction-info">
-              ${escapeHTML(team)}
-            </div>
 
-            <div class="sanction-description">
-              ${escapeHTML(reason)}
-            </div>
+      return `
 
-            ${
-              sanction.date
-                ? `
-                  <div class="sanction-date">
-                    ${escapeHTML(
-                      String(sanction.date)
-                    )}
-                  </div>
-                `
-                : ""
-            }
+        <div class="sanction">
 
-            ${buttons}
+          <strong>
+            ${escapeHTML(student)}
+          </strong>
 
-          </div>
-        `;
+          <span>
+            ${escapeHTML(team)}
+          </span>
 
-      })
-      .join("");
+          <span>
+            ${escapeHTML(date)}
+          </span>
+
+          <span>
+            ${escapeHTML(reason)}
+          </span>
+
+          ${actions}
+
+        </div>
+
+      `;
+
+    }).join("");
 
 }
 
@@ -1630,7 +1698,7 @@ function renderSanctions(sanctions) {
 // AGREGAR SANCIÓN
 // ============================================================
 
-function openSanctionModal() {
+async function openSanctionModal() {
 
   if (!currentSession) {
     return;
@@ -1638,7 +1706,10 @@ function openSanctionModal() {
 
 
   const student =
-    prompt("Nombre del estudiante:");
+    prompt(
+      "Nombre del estudiante:"
+    );
+
 
   if (student === null) {
     return;
@@ -1646,7 +1717,10 @@ function openSanctionModal() {
 
 
   const team =
-    prompt("Grado / equipo:");
+    prompt(
+      "Grado / equipo:"
+    );
+
 
   if (team === null) {
     return;
@@ -1654,7 +1728,10 @@ function openSanctionModal() {
 
 
   const reason =
-    prompt("Razón de la sanción:");
+    prompt(
+      "Razón de la sanción:"
+    );
+
 
   if (reason === null) {
     return;
@@ -1668,53 +1745,23 @@ function openSanctionModal() {
     );
 
 
-  addSanction(
-    student.trim(),
-    team.trim(),
-    reason.trim(),
-    date ? date.trim() : null
-  );
-
-}
-
-
-async function addSanction(
-  student,
-  team,
-  reason,
-  date
-) {
-
-  if (!currentSession) {
-    return;
-  }
+  const {
+    error
+  } = await db
+    .from("sanctions")
+    .insert([{
+      student: student.trim(),
+      team: team.trim() || null,
+      reason: reason.trim(),
+      date: date
+        ? date.trim()
+        : null
+    }]);
 
 
-  if (!student || !reason) {
+  if (error) {
 
-    alert(
-      "Completa el nombre y la razón."
-    );
-
-    return;
-
-  }
-
-
-  const result =
-    await db
-      .from("sanctions")
-      .insert([{
-        student,
-        team: team || null,
-        reason,
-        date: date || null
-      }]);
-
-
-  if (result.error) {
-
-    alert(result.error.message);
+    alert(error.message);
 
     return;
 
@@ -1737,25 +1784,23 @@ async function editSanction(id) {
   }
 
 
-  const result =
-    await db
-      .from("sanctions")
-      .select("*")
-      .eq("id", id)
-      .single();
+  const {
+    data: sanction,
+    error
+  } = await db
+    .from("sanctions")
+    .select("*")
+    .eq("id", id)
+    .single();
 
 
-  if (result.error) {
+  if (error) {
 
-    alert(result.error.message);
+    alert(error.message);
 
     return;
 
   }
-
-
-  const sanction =
-    result.data;
 
 
   const student =
@@ -1808,25 +1853,24 @@ async function editSanction(id) {
     );
 
 
-  const updateResult =
-    await db
-      .from("sanctions")
-      .update({
-        student: student.trim(),
-        team: team.trim() || null,
-        reason: reason.trim(),
-        date: date
-          ? date.trim()
-          : null
-      })
-      .eq("id", id);
+  const {
+    error: updateError
+  } = await db
+    .from("sanctions")
+    .update({
+      student: student.trim(),
+      team: team.trim() || null,
+      reason: reason.trim(),
+      date: date
+        ? date.trim()
+        : null
+    })
+    .eq("id", id);
 
 
-  if (updateResult.error) {
+  if (updateError) {
 
-    alert(
-      updateResult.error.message
-    );
+    alert(updateError.message);
 
     return;
 
@@ -1849,27 +1893,28 @@ async function deleteSanction(id) {
   }
 
 
-  const confirmed =
-    confirm(
+  if (
+    !confirm(
       "¿Seguro que quieres eliminar esta sanción?"
-    );
+    )
+  ) {
 
-
-  if (!confirmed) {
     return;
+
   }
 
 
-  const result =
-    await db
-      .from("sanctions")
-      .delete()
-      .eq("id", id);
+  const {
+    error
+  } = await db
+    .from("sanctions")
+    .delete()
+    .eq("id", id);
 
 
-  if (result.error) {
+  if (error) {
 
-    alert(result.error.message);
+    alert(error.message);
 
     return;
 
@@ -1887,17 +1932,19 @@ async function deleteSanction(id) {
 
 async function loadScorers() {
 
-  const result =
-    await db
-      .from("scorers")
-      .select("*");
+  const {
+    data,
+    error
+  } = await db
+    .from("scorers")
+    .select("*");
 
 
-  if (result.error) {
+  if (error) {
 
     console.error(
       "Error cargando goleadores:",
-      result.error
+      error
     );
 
     return;
@@ -1906,7 +1953,7 @@ async function loadScorers() {
 
 
   renderScorers(
-    result.data || []
+    data || []
   );
 
 }
@@ -1916,7 +1963,6 @@ function renderScorers(scorers) {
 
   const menContainer =
     document.getElementById("menScorers");
-
 
   const womenContainer =
     document.getElementById("womenScorers");
@@ -1964,10 +2010,6 @@ function renderScorers(scorers) {
 }
 
 
-// ============================================================
-// FILAS GOLEADORES
-// ============================================================
-
 function scorerRowsHTML(scorers) {
 
   const sorted =
@@ -1980,14 +2022,12 @@ function scorerRowsHTML(scorers) {
           0
         );
 
-
       const goalsB =
         Number(
           b.goals ??
           b.goal_count ??
           0
         );
-
 
       return goalsB - goalsA;
 
@@ -2007,20 +2047,18 @@ function scorerRowsHTML(scorers) {
   }
 
 
-  return sorted
-    .map((scorer, index) => {
+  return sorted.map(
+    (scorer, index) => {
 
       const player =
         scorer.player ||
         scorer.name ||
         "";
 
-
       const team =
         normalizeTeam(
           scorer.team || ""
         );
-
 
       const goals =
         scorer.goals ??
@@ -2035,14 +2073,14 @@ function scorerRowsHTML(scorers) {
 
               <button
                 type="button"
-                class="admin-button"
+                class="outline"
                 onclick="editScorer(${Number(scorer.id)})">
                 ✏️
               </button>
 
               <button
                 type="button"
-                class="admin-button danger"
+                class="danger"
                 onclick="deleteScorer(${Number(scorer.id)})">
                 🗑️
               </button>
@@ -2053,13 +2091,14 @@ function scorerRowsHTML(scorers) {
 
 
       return `
+
         <tr>
 
           <td>
             ${index + 1}
           </td>
 
-          <td>
+          <td class="scorer-name">
             ${escapeHTML(player)}
           </td>
 
@@ -2074,10 +2113,11 @@ function scorerRowsHTML(scorers) {
           ${actions}
 
         </tr>
+
       `;
 
-    })
-    .join("");
+    }
+  ).join("");
 
 }
 
@@ -2086,7 +2126,7 @@ function scorerRowsHTML(scorers) {
 // AGREGAR GOLEADOR
 // ============================================================
 
-function openScorerModal() {
+async function openScorerModal() {
 
   if (!currentSession) {
     return;
@@ -2094,7 +2134,10 @@ function openScorerModal() {
 
 
   const player =
-    prompt("Nombre del jugador:");
+    prompt(
+      "Nombre del jugador:"
+    );
+
 
   if (player === null) {
     return;
@@ -2102,7 +2145,10 @@ function openScorerModal() {
 
 
   const team =
-    prompt("Equipo:");
+    prompt(
+      "Equipo:"
+    );
+
 
   if (team === null) {
     return;
@@ -2111,7 +2157,7 @@ function openScorerModal() {
 
   const gender =
     prompt(
-      "Género: escribe M para hombres o F para mujeres",
+      "Escribe M para hombres o F para mujeres:",
       "M"
     );
 
@@ -2133,42 +2179,13 @@ function openScorerModal() {
   }
 
 
-  addScorer(
-    player.trim(),
-    normalizeTeam(team.trim()),
-    gender.trim().toUpperCase(),
-    Number(goals)
-  );
-
-}
-
-
-async function addScorer(
-  player,
-  team,
-  gender,
-  goals
-) {
-
-  if (!currentSession) {
-    return;
-  }
-
-
-  if (!player || !team) {
-
-    alert(
-      "Completa el jugador y el equipo."
-    );
-
-    return;
-
-  }
+  const numericGoals =
+    Number(goals);
 
 
   if (
-    !Number.isFinite(goals) ||
-    goals < 0
+    !Number.isFinite(numericGoals) ||
+    numericGoals < 0
   ) {
 
     alert(
@@ -2180,20 +2197,21 @@ async function addScorer(
   }
 
 
-  const result =
-    await db
-      .from("scorers")
-      .insert([{
-        player,
-        team,
-        gender,
-        goals
-      }]);
+  const {
+    error
+  } = await db
+    .from("scorers")
+    .insert([{
+      player: player.trim(),
+      team: normalizeTeam(team.trim()),
+      gender: gender.trim().toUpperCase(),
+      goals: numericGoals
+    }]);
 
 
-  if (result.error) {
+  if (error) {
 
-    alert(result.error.message);
+    alert(error.message);
 
     return;
 
@@ -2216,25 +2234,23 @@ async function editScorer(id) {
   }
 
 
-  const result =
-    await db
-      .from("scorers")
-      .select("*")
-      .eq("id", id)
-      .single();
+  const {
+    data: scorer,
+    error
+  } = await db
+    .from("scorers")
+    .select("*")
+    .eq("id", id)
+    .single();
 
 
-  if (result.error) {
+  if (error) {
 
-    alert(result.error.message);
+    alert(error.message);
 
     return;
 
   }
-
-
-  const scorer =
-    result.data;
 
 
   const player =
@@ -2311,23 +2327,22 @@ async function editScorer(id) {
   }
 
 
-  const updateResult =
-    await db
-      .from("scorers")
-      .update({
-        player: player.trim(),
-        team: normalizeTeam(team.trim()),
-        gender: gender.trim().toUpperCase(),
-        goals: numericGoals
-      })
-      .eq("id", id);
+  const {
+    error: updateError
+  } = await db
+    .from("scorers")
+    .update({
+      player: player.trim(),
+      team: normalizeTeam(team.trim()),
+      gender: gender.trim().toUpperCase(),
+      goals: numericGoals
+    })
+    .eq("id", id);
 
 
-  if (updateResult.error) {
+  if (updateError) {
 
-    alert(
-      updateResult.error.message
-    );
+    alert(updateError.message);
 
     return;
 
@@ -2350,27 +2365,28 @@ async function deleteScorer(id) {
   }
 
 
-  const confirmed =
-    confirm(
+  if (
+    !confirm(
       "¿Seguro que quieres eliminar este goleador?"
-    );
+    )
+  ) {
 
-
-  if (!confirmed) {
     return;
+
   }
 
 
-  const result =
-    await db
-      .from("scorers")
-      .delete()
-      .eq("id", id);
+  const {
+    error
+  } = await db
+    .from("scorers")
+    .delete()
+    .eq("id", id);
 
 
-  if (result.error) {
+  if (error) {
 
-    alert(result.error.message);
+    alert(error.message);
 
     return;
 
@@ -2388,17 +2404,19 @@ async function deleteScorer(id) {
 
 async function loadCleanliness() {
 
-  const result =
-    await db
-      .from("cleanliness_scores")
-      .select("*");
+  const {
+    data,
+    error
+  } = await db
+    .from("cleanliness_scores")
+    .select("*");
 
 
-  if (result.error) {
+  if (error) {
 
     console.error(
       "Error cargando grado:",
-      result.error
+      error
     );
 
     return;
@@ -2407,15 +2425,11 @@ async function loadCleanliness() {
 
 
   renderCleanliness(
-    result.data || []
+    data || []
   );
 
 }
 
-
-// ============================================================
-// RENDER GRADO
-// ============================================================
 
 function renderCleanliness(rows) {
 
@@ -2426,13 +2440,7 @@ function renderCleanliness(rows) {
 
 
   if (!container) {
-
-    console.error(
-      "No existe #cleanlinessTable."
-    );
-
     return;
-
   }
 
 
@@ -2441,7 +2449,7 @@ function renderCleanliness(rows) {
     container.innerHTML = `
       <tr>
         <td colspan="5">
-          No hay datos de grado registrados.
+          No hay datos registrados.
         </td>
       </tr>
     `;
@@ -2461,7 +2469,6 @@ function renderCleanliness(rows) {
           0
         );
 
-
       const scoreB =
         Number(
           b.score ??
@@ -2469,83 +2476,80 @@ function renderCleanliness(rows) {
           0
         );
 
-
       return scoreB - scoreA;
 
     });
 
 
   container.innerHTML =
-    sorted
-      .map((row, index) => {
+    sorted.map((row, index) => {
 
-        const name =
-          row.grade ||
-          row.name ||
-          row.team ||
-          "";
+      const name =
+        row.grade ||
+        row.name ||
+        row.team ||
+        "";
 
+      const score =
+        row.score ??
+        row.points ??
+        0;
 
-        const score =
-          row.score ??
-          row.points ??
-          0;
-
-
-        const reason =
-          row.reason ||
-          row.description ||
-          row.comment ||
-          "";
+      const reason =
+        row.reason ||
+        row.description ||
+        row.comment ||
+        "";
 
 
-        const action =
-          currentSession
-            ? `
-              <button
-                type="button"
-                class="admin-button"
-                onclick="editTeamPoints(${Number(row.id)})">
-                ✏️
-              </button>
-            `
-            : "";
+      const action =
+        currentSession
+          ? `
+            <button
+              type="button"
+              class="outline"
+              onclick="editTeamPoints(${Number(row.id)})">
+              ✏️ Editar
+            </button>
+          `
+          : "";
 
 
-        return `
-          <tr>
+      return `
 
-            <td>
-              ${index + 1}
-            </td>
+        <tr>
 
-            <td>
-              ${escapeHTML(
-                String(name)
-              )}
-            </td>
+          <td class="rank">
+            ${index + 1}
+          </td>
 
-            <td>
-              ${escapeHTML(
-                String(score)
-              )}
-            </td>
+          <td class="team-name">
+            ${escapeHTML(
+              String(name)
+            )}
+          </td>
 
-            <td>
-              ${escapeHTML(
-                String(reason)
-              )}
-            </td>
+          <td class="pts">
+            ${escapeHTML(
+              String(score)
+            )}
+          </td>
 
-            <td>
-              ${action}
-            </td>
+          <td>
+            ${escapeHTML(
+              String(reason)
+            )}
+          </td>
 
-          </tr>
-        `;
+          <td>
+            ${action}
+          </td>
 
-      })
-      .join("");
+        </tr>
+
+      `;
+
+    }).join("");
 
 }
 
@@ -2571,43 +2575,23 @@ async function editTeamPoints(id) {
     Number(id);
 
 
-  if (!Number.isFinite(numericId)) {
-
-    alert(
-      "ID de grado no válido."
-    );
-
-    return;
-
-  }
-
-
-  const result =
-    await db
-      .from("cleanliness_scores")
-      .select("*")
-      .eq("id", numericId)
-      .single();
+  const {
+    data: row,
+    error
+  } = await db
+    .from("cleanliness_scores")
+    .select("*")
+    .eq("id", numericId)
+    .single();
 
 
-  if (result.error) {
+  if (error) {
 
-    console.error(
-      "Error obteniendo puntos:",
-      result.error
-    );
-
-    alert(
-      result.error.message
-    );
+    alert(error.message);
 
     return;
 
   }
-
-
-  const row =
-    result.data;
 
 
   const currentPoints =
@@ -2658,46 +2642,25 @@ async function editTeamPoints(id) {
 
   }
 
-  else if (
-    Object.prototype.hasOwnProperty.call(
-      row,
-      "points"
-    )
-  ) {
+  else {
 
     updateData.points =
       points;
 
   }
 
-  else {
 
-    alert(
-      "No se encontró score ni points."
-    );
-
-    return;
-
-  }
+  const {
+    error: updateError
+  } = await db
+    .from("cleanliness_scores")
+    .update(updateData)
+    .eq("id", numericId);
 
 
-  const updateResult =
-    await db
-      .from("cleanliness_scores")
-      .update(updateData)
-      .eq("id", numericId);
+  if (updateError) {
 
-
-  if (updateResult.error) {
-
-    console.error(
-      "Error actualizando puntos:",
-      updateResult.error
-    );
-
-    alert(
-      updateResult.error.message
-    );
+    alert(updateError.message);
 
     return;
 
@@ -2705,24 +2668,6 @@ async function editTeamPoints(id) {
 
 
   await loadCleanliness();
-
-}
-
-
-// ============================================================
-// COMPATIBILIDAD
-// ============================================================
-
-async function editCleanliness(id) {
-
-  return editTeamPoints(id);
-
-}
-
-
-async function saveCleanliness() {
-
-  return;
 
 }
 
@@ -2737,12 +2682,15 @@ function closeModal(id) {
     document.getElementById(id);
 
 
-  if (modal) {
-
-    modal.style.display =
-      "none";
-
+  if (!modal) {
+    return;
   }
+
+
+  modal.classList.add("hidden");
+
+  modal.style.display =
+    "none";
 
 }
 
@@ -2764,36 +2712,71 @@ function escapeHTML(value) {
 
 
 // ============================================================
-// FUNCIONES DISPONIBLES GLOBALMENTE
+// FUNCIONES GLOBALES
 // ============================================================
 
-window.closeModal = closeModal;
-window.login = login;
-window.logout = logout;
+window.closeModal =
+  closeModal;
 
-window.editMatch = editMatch;
-window.saveMatch = saveMatch;
+window.login =
+  login;
 
-window.editTeamPoints = editTeamPoints;
+window.logout =
+  logout;
 
-window.openSanctionModal = openSanctionModal;
-window.editSanction = editSanction;
-window.deleteSanction = deleteSanction;
+window.editMatch =
+  editMatch;
 
-window.openScorerModal = openScorerModal;
-window.editScorer = editScorer;
-window.deleteScorer = deleteScorer;
+window.saveMatch =
+  saveMatch;
 
-window.refreshAll = refreshAll;
+window.editTeamPoints =
+  editTeamPoints;
 
-console.log("INTERAULAS: funciones globales cargadas correctamente.");
+window.openSanctionModal =
+  openSanctionModal;
+
+window.editSanction =
+  editSanction;
+
+window.deleteSanction =
+  deleteSanction;
+
+window.openScorerModal =
+  openScorerModal;
+
+window.editScorer =
+  editScorer;
+
+window.deleteScorer =
+  deleteScorer;
+
+window.refreshAll =
+  refreshAll;
+
 
 // ============================================================
-// VERIFICACIÓN
+// SUPABASE CAMBIOS DE SESIÓN
+// ============================================================
+
+db.auth.onAuthStateChange(
+  (_event, session) => {
+
+    currentSession =
+      session || null;
+
+    updateAuthUI();
+
+  }
+);
+
+
+// ============================================================
+// DEBUG
 // ============================================================
 
 console.log(
-  "Interaulas 2026 app.js cargado correctamente."
+  "INTERAULAS 2026 app.js cargado correctamente."
 );
 
 console.log(
@@ -2804,4 +2787,9 @@ console.log(
 console.log(
   "editTeamPoints:",
   typeof window.editTeamPoints
+);
+
+console.log(
+  "login:",
+  typeof window.login
 );
