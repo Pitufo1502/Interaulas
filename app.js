@@ -43,7 +43,11 @@ const WOMEN = [
   "Las Cabritas"
 ];
 
-const ALL_TEAMS = [...MEN_A, ...MEN_B, ...WOMEN];
+const ALL_TEAMS = [
+  ...MEN_A,
+  ...MEN_B,
+  ...WOMEN
+];
 
 // ============================================================
 // ALIAS DE EQUIPOS
@@ -69,10 +73,15 @@ function normalizeTeam(team) {
 }
 
 // ============================================================
-// CALENDARIO OFICIAL
+// HORARIO OFICIAL
 // ============================================================
 
 const SCHEDULE = [
+
+  // ----------------------------
+  // SEPTIEMBRE
+  // ----------------------------
+
   {
     day: 1,
     date: "2026-09-07",
@@ -81,6 +90,7 @@ const SCHEDULE = [
     home: "Fortnite",
     away: "Chifladitos"
   },
+
   {
     day: 2,
     date: "2026-09-08",
@@ -89,6 +99,7 @@ const SCHEDULE = [
     home: "Ponys",
     away: "Jags"
   },
+
   {
     day: 3,
     date: "2026-09-09",
@@ -97,6 +108,7 @@ const SCHEDULE = [
     home: "Sin Espinas",
     away: "Motoneta"
   },
+
   {
     day: 4,
     date: "2026-09-10",
@@ -105,6 +117,7 @@ const SCHEDULE = [
     home: "Osas Mañosas",
     away: "Innombrables"
   },
+
   {
     day: 5,
     date: "2026-09-16",
@@ -113,6 +126,7 @@ const SCHEDULE = [
     home: "Papitos",
     away: "Trocos"
   },
+
   {
     day: 6,
     date: "2026-09-17",
@@ -121,6 +135,7 @@ const SCHEDULE = [
     home: "Las Cabritas",
     away: "Troncas"
   },
+
   {
     day: 7,
     date: "2026-09-18",
@@ -129,225 +144,261 @@ const SCHEDULE = [
     home: "Osos Mañosos",
     away: "La Banca"
   },
+
   {
-    day: 9,
+    day: 8,
     date: "2026-09-22",
     gender: "M",
     group: "A",
-    home: "Fortnite",
-    away: "Chispazos"
+    home: "Chifladitos",
+    away: "Papitos"
   },
+
   {
-    day: 8,
+    day: 9,
     date: "2026-09-23",
     gender: "F",
     group: "Mujeres",
     home: "Ponys",
     away: "Innombrables"
   },
+
   {
     day: 10,
     date: "2026-09-24",
+    gender: "M",
+    group: "A",
+    home: "Chispazos",
+    away: "Fortnite"
+  },
+
+  {
+    day: 11,
+    date: "2026-09-25",
     gender: "F",
     group: "Mujeres",
     home: "Jags",
     away: "Troncas"
   },
+
   {
-    day: 11,
-    date: "2026-09-25",
+    day: 12,
+    date: "2026-09-28",
     gender: "M",
     group: "B",
     home: "TOROS FC",
     away: "Sin Espinas"
   },
+
   {
-    day: 12,
-    date: "2026-09-28",
+    day: 13,
+    date: "2026-09-29",
     gender: "F",
     group: "Mujeres",
     home: "Osas Mañosas",
     away: "Las Cabritas"
   },
-  {
-    day: 13,
-    date: "2026-09-29",
-    gender: "M",
-    group: "A",
-    home: "Chifladitos",
-    away: "Papitos"
-  },
+
   {
     day: 14,
     date: "2026-09-30",
-    gender: "F",
-    group: "Mujeres",
-    home: "Ponys",
-    away: "Troncas"
-  },
-  {
-    day: 15,
-    date: "2026-10-01",
     gender: "M",
     group: "B",
     home: "Motoneta",
     away: "Osos Mañosos"
   },
+
+  // ----------------------------
+  // OCTUBRE
+  // ----------------------------
+
   {
-    day: 16,
-    date: "2026-10-02",
+    day: 15,
+    date: "2026-10-01",
     gender: "F",
     group: "Mujeres",
-    home: "Jags",
-    away: "Osas Mañosas"
+    home: "Ponys",
+    away: "Troncas"
   },
+
   {
-    day: 17,
+    day: 16,
     date: "2026-10-05",
     gender: "M",
     group: "A",
     home: "Trocos",
     away: "Chispazos"
   },
+
   {
-    day: 18,
+    day: 17,
     date: "2026-10-06",
     gender: "F",
     group: "Mujeres",
-    home: "Innombrables",
-    away: "Las Cabritas"
+    home: "Jags",
+    away: "Osas Mañosas"
   },
+
   {
-    day: 19,
+    day: 18,
     date: "2026-10-07",
     gender: "M",
     group: "B",
     home: "La Banca",
     away: "TOROS FC"
   },
+
   {
-    day: 20,
+    day: 19,
     date: "2026-10-08",
     gender: "F",
     group: "Mujeres",
-    home: "Ponys",
+    home: "Innombrables",
     away: "Las Cabritas"
   },
+
   {
-    day: 21,
+    day: 20,
     date: "2026-10-09",
     gender: "M",
     group: "A",
     home: "Fortnite",
     away: "Papitos"
   },
+
   {
-    day: 22,
+    day: 21,
     date: "2026-10-12",
     gender: "F",
     group: "Mujeres",
-    home: "Troncas",
-    away: "Osas Mañosas"
+    home: "Ponys",
+    away: "Las Cabritas"
   },
+
   {
-    day: 23,
+    day: 22,
     date: "2026-10-13",
     gender: "M",
     group: "B",
     home: "Motoneta",
     away: "TOROS FC"
   },
+
   {
-    day: 24,
+    day: 23,
     date: "2026-10-14",
     gender: "F",
     group: "Mujeres",
-    home: "Ponys",
+    home: "Troncas",
     away: "Osas Mañosas"
   },
+
   {
-    day: 25,
+    day: 24,
     date: "2026-10-15",
     gender: "M",
     group: "A",
     home: "Chifladitos",
     away: "Chispazos"
   },
+
   {
-    day: 26,
+    day: 25,
     date: "2026-10-16",
     gender: "F",
     group: "Mujeres",
-    home: "Innombrables",
-    away: "Jags"
+    home: "Ponys",
+    away: "Osas Mañosas"
   },
+
   {
-    day: 27,
+    day: 26,
     date: "2026-10-21",
     gender: "M",
     group: "B",
     home: "Sin Espinas",
     away: "Osos Mañosos"
   },
+
   {
-    day: 28,
+    day: 27,
     date: "2026-10-22",
     gender: "F",
     group: "Mujeres",
-    home: "Las Cabritas",
+    home: "Innombrables",
     away: "Jags"
   },
+
   {
-    day: 29,
+    day: 28,
     date: "2026-10-23",
     gender: "M",
     group: "A",
     home: "Fortnite",
     away: "Trocos"
   },
+
   {
-    day: 30,
+    day: 29,
     date: "2026-10-26",
     gender: "F",
     group: "Mujeres",
-    home: "Troncas",
-    away: "Innombrables"
+    home: "Las Cabritas",
+    away: "Jags"
   },
+
   {
-    day: 31,
+    day: 30,
     date: "2026-10-27",
     gender: "M",
     group: "B",
     home: "Sin Espinas",
     away: "La Banca"
   },
+
+  {
+    day: 31,
+    date: "2026-10-28",
+    gender: "F",
+    group: "Mujeres",
+    home: "Troncas",
+    away: "Innombrables"
+  },
+
   {
     day: 32,
-    date: "2026-10-28",
+    date: "2026-10-30",
     gender: "M",
     group: "A",
     home: "Papitos",
     away: "Chispazos"
   },
+
+  // ----------------------------
+  // NOVIEMBRE
+  // ----------------------------
+
   {
     day: 33,
-    date: "2026-10-30",
+    date: "2026-11-02",
     gender: "M",
     group: "B",
     home: "Osos Mañosos",
     away: "TOROS FC"
   },
+
   {
     day: 34,
-    date: "2026-11-02",
+    date: "2026-11-03",
     gender: "M",
     group: "A",
     home: "Trocos",
     away: "Chifladitos"
   },
+
   {
     day: 35,
-    date: "2026-11-03",
+    date: "2026-11-04",
     gender: "M",
     group: "B",
     home: "Motoneta",
@@ -378,7 +429,12 @@ function $(id) {
 }
 
 function escapeHtml(value) {
-  if (value === null || value === undefined) return "";
+  if (
+    value === null ||
+    value === undefined
+  ) {
+    return "";
+  }
 
   return String(value)
     .replaceAll("&", "&amp;")
@@ -389,30 +445,46 @@ function escapeHtml(value) {
 }
 
 function formatDate(dateString) {
+
   if (!dateString) return "";
 
-  const date = new Date(`${dateString}T12:00:00`);
+  const date =
+    new Date(
+      `${dateString}T12:00:00`
+    );
 
-  return date.toLocaleDateString("es-GT", {
-    weekday: "long",
-    day: "numeric",
-    month: "long"
-  });
+  return date.toLocaleDateString(
+    "es-GT",
+    {
+      weekday: "long",
+      day: "numeric",
+      month: "long"
+    }
+  );
 }
 
 function formatDateShort(dateString) {
+
   if (!dateString) return "";
 
-  const date = new Date(`${dateString}T12:00:00`);
+  const date =
+    new Date(
+      `${dateString}T12:00:00`
+    );
 
-  return date.toLocaleDateString("es-GT", {
-    day: "2-digit",
-    month: "2-digit"
-  });
+  return date.toLocaleDateString(
+    "es-GT",
+    {
+      day: "2-digit",
+      month: "2-digit"
+    }
+  );
 }
 
 function isMen(team) {
-  const normalized = normalizeTeam(team);
+
+  const normalized =
+    normalizeTeam(team);
 
   return (
     MEN_A.includes(normalized) ||
@@ -421,11 +493,17 @@ function isMen(team) {
 }
 
 function isWomen(team) {
-  return WOMEN.includes(normalizeTeam(team));
+
+  return WOMEN.includes(
+    normalizeTeam(team)
+  );
 }
 
 function getGenderLabel(gender) {
-  return gender === "M" ? "Hombres" : "Mujeres";
+
+  return gender === "M"
+    ? "Hombres"
+    : "Mujeres";
 }
 
 // ============================================================
@@ -433,20 +511,24 @@ function getGenderLabel(gender) {
 // ============================================================
 
 function openModal(id) {
+
   const modal = $(id);
 
   if (!modal) return;
 
   modal.classList.remove("hidden");
+
   modal.style.display = "flex";
 }
 
 function closeModal(id) {
+
   const modal = $(id);
 
   if (!modal) return;
 
   modal.classList.add("hidden");
+
   modal.style.display = "none";
 }
 
@@ -458,12 +540,18 @@ window.closeModal = closeModal;
 // ============================================================
 
 async function login() {
-  const email = $("email")?.value.trim();
-  const password = $("password")?.value;
 
-  const message = $("authMessage");
+  const email =
+    $("email")?.value.trim();
+
+  const password =
+    $("password")?.value;
+
+  const message =
+    $("authMessage");
 
   if (!email || !password) {
+
     if (message) {
       message.textContent =
         "Escribe tu correo y contraseña.";
@@ -473,26 +561,36 @@ async function login() {
   }
 
   if (message) {
-    message.textContent = "Iniciando sesión...";
+    message.textContent =
+      "Iniciando sesión...";
   }
 
-  const { data, error } =
+  const {
+    data,
+    error
+  } =
     await db.auth.signInWithPassword({
       email,
       password
     });
 
   if (error) {
-    console.error("LOGIN ERROR:", error);
+
+    console.error(
+      "LOGIN ERROR:",
+      error
+    );
 
     if (message) {
-      message.textContent = error.message;
+      message.textContent =
+        error.message;
     }
 
     return;
   }
 
-  currentSession = data.session;
+  currentSession =
+    data.session;
 
   if (message) {
     message.textContent = "";
@@ -506,6 +604,7 @@ async function login() {
 }
 
 async function logout() {
+
   await db.auth.signOut();
 
   currentSession = null;
@@ -516,63 +615,109 @@ async function logout() {
 }
 
 async function checkSession() {
-  const { data, error } =
+
+  const {
+    data,
+    error
+  } =
     await db.auth.getSession();
 
   if (error) {
-    console.error("SESSION ERROR:", error);
+
+    console.error(
+      "SESSION ERROR:",
+      error
+    );
+
     currentSession = null;
+
   } else {
-    currentSession = data.session;
+
+    currentSession =
+      data.session;
   }
 
   updateAuthUI();
 }
 
 function updateAuthUI() {
-  const loginBtn = $("loginBtn");
-  const addScorerBtn = $("addScorerBtn");
-  const addSanctionBtn = $("addSanctionBtn");
+
+  const loginBtn =
+    $("loginBtn");
+
+  const addScorerBtn =
+    $("addScorerBtn");
+
+  const addSanctionBtn =
+    $("addSanctionBtn");
 
   if (currentSession) {
 
     if (loginBtn) {
-      loginBtn.textContent = "Cerrar sesión";
-      loginBtn.onclick = logout;
+
+      loginBtn.textContent =
+        "Cerrar sesión";
+
+      loginBtn.onclick =
+        logout;
     }
 
     if (addScorerBtn) {
-      addScorerBtn.classList.remove("hidden");
-      addScorerBtn.style.display = "";
+
+      addScorerBtn.classList.remove(
+        "hidden"
+      );
+
+      addScorerBtn.style.display =
+        "";
     }
 
     if (addSanctionBtn) {
-      addSanctionBtn.classList.remove("hidden");
-      addSanctionBtn.style.display = "";
+
+      addSanctionBtn.classList.remove(
+        "hidden"
+      );
+
+      addSanctionBtn.style.display =
+        "";
     }
 
   } else {
 
     if (loginBtn) {
-      loginBtn.textContent = "Iniciar sesión";
-      loginBtn.onclick = () =>
-        openModal("authModal");
+
+      loginBtn.textContent =
+        "Iniciar sesión";
+
+      loginBtn.onclick =
+        () =>
+          openModal("authModal");
     }
 
     if (addScorerBtn) {
-      addScorerBtn.classList.add("hidden");
-      addScorerBtn.style.display = "none";
+
+      addScorerBtn.classList.add(
+        "hidden"
+      );
+
+      addScorerBtn.style.display =
+        "none";
     }
 
     if (addSanctionBtn) {
-      addSanctionBtn.classList.add("hidden");
-      addSanctionBtn.style.display = "none";
+
+      addSanctionBtn.classList.add(
+        "hidden"
+      );
+
+      addSanctionBtn.style.display =
+        "none";
     }
   }
 }
 
 // ============================================================
-// CARGAR TODO
+// REFRESH
 // ============================================================
 
 async function refreshAll() {
@@ -604,17 +749,21 @@ async function refreshAll() {
 }
 
 // ============================================================
-// PARTIDOS
+// MATCHES
 // ============================================================
 
 async function loadMatches() {
 
-  const { data, error } =
+  const {
+    data,
+    error
+  } =
     await db
       .from("matches")
       .select("*");
 
   if (error) {
+
     console.error(
       "Error cargando matches:",
       error
@@ -625,34 +774,47 @@ async function loadMatches() {
     return;
   }
 
-  matchesData = data || [];
+  matchesData =
+    data || [];
 
-  matchesData = matchesData.map(match => ({
-    ...match,
+  matchesData =
+    matchesData.map(match => ({
+      ...match,
 
-    home_team:
-      normalizeTeam(match.home_team),
+      home_team:
+        normalizeTeam(
+          match.home_team
+        ),
 
-    away_team:
-      normalizeTeam(match.away_team)
-  }));
+      away_team:
+        normalizeTeam(
+          match.away_team
+        )
+    }));
 }
 
 function getMatchForDay(day) {
 
   return matchesData.find(
     match =>
-      Number(match.day) === Number(day)
+      Number(match.day) ===
+      Number(day)
   );
 }
 
+// ============================================================
+// PRÓXIMO PARTIDO
+// ============================================================
+
 function renderNextMatch() {
 
-  const container = $("nextMatch");
+  const container =
+    $("nextMatch");
 
   if (!container) return;
 
-  const today = new Date();
+  const today =
+    new Date();
 
   today.setHours(
     0,
@@ -665,19 +827,25 @@ function renderNextMatch() {
     SCHEDULE
       .filter(game => {
 
-        const d =
-          new Date(`${game.date}T12:00:00`);
+        const date =
+          new Date(
+            `${game.date}T12:00:00`
+          );
 
-        return d >= today;
+        return date >= today;
       })
-      .sort((a, b) =>
-        a.date.localeCompare(b.date)
+      .sort(
+        (a, b) =>
+          a.date.localeCompare(
+            b.date
+          )
       );
 
   if (!upcoming.length) {
 
     container.innerHTML = `
       <div>
+
         <div class="eyebrow">
           INTERAULAS 2026
         </div>
@@ -689,18 +857,21 @@ function renderNextMatch() {
         <p>
           Todos los partidos han sido jugados.
         </p>
+
       </div>
     `;
 
     return;
   }
 
-  const next = upcoming[0];
+  const next =
+    upcoming[0];
 
   const saved =
     getMatchForDay(next.day);
 
-  let scoreText = "VS";
+  let scoreText =
+    "VS";
 
   if (
     saved &&
@@ -716,27 +887,42 @@ function renderNextMatch() {
 
   container.innerHTML = `
     <div>
+
       <div class="eyebrow">
         PRÓXIMO PARTIDO ·
-        ${getGenderLabel(next.gender)}
+        ${getGenderLabel(
+          next.gender
+        )}
       </div>
 
       <h2>
         ${escapeHtml(next.home)}
-        <span>${scoreText}</span>
+
+        <span>
+          ${scoreText}
+        </span>
+
         ${escapeHtml(next.away)}
       </h2>
 
       <p>
-        ${escapeHtml(formatDate(next.date))}
+        ${escapeHtml(
+          formatDate(next.date)
+        )}
       </p>
+
     </div>
   `;
 }
 
+// ============================================================
+// MOSTRAR PARTIDOS
+// ============================================================
+
 function renderMatches() {
 
-  const container = $("matches");
+  const container =
+    $("matches");
 
   if (!container) return;
 
@@ -745,7 +931,9 @@ function renderMatches() {
   for (const game of SCHEDULE) {
 
     const saved =
-      getMatchForDay(game.day);
+      getMatchForDay(
+        game.day
+      );
 
     let score = "—";
 
@@ -762,6 +950,7 @@ function renderMatches() {
     }
 
     html += `
+
       <div class="matchday">
 
         <h3>
@@ -774,20 +963,28 @@ function renderMatches() {
 
           <div>
             <strong>
-              ${formatDateShort(game.date)}
+              ${formatDateShort(
+                game.date
+              )}
             </strong>
           </div>
 
           <div>
+
             <strong>
-              ${escapeHtml(game.home)}
+              ${escapeHtml(
+                game.home
+              )}
             </strong>
 
             vs
 
             <strong>
-              ${escapeHtml(game.away)}
+              ${escapeHtml(
+                game.away
+              )}
             </strong>
+
           </div>
 
           <div class="score">
@@ -795,6 +992,7 @@ function renderMatches() {
           </div>
 
           <div class="edit">
+
             ${
               currentSession
                 ? `
@@ -807,6 +1005,7 @@ function renderMatches() {
                 `
                 : ""
             }
+
           </div>
 
         </div>
@@ -815,8 +1014,13 @@ function renderMatches() {
     `;
   }
 
-  container.innerHTML = html;
+  container.innerHTML =
+    html;
 }
+
+// ============================================================
+// EDITAR PARTIDO
+// ============================================================
 
 async function editMatch(day) {
 
@@ -831,7 +1035,9 @@ async function editMatch(day) {
 
   const game =
     SCHEDULE.find(
-      g => Number(g.day) === Number(day)
+      g =>
+        Number(g.day) ===
+        Number(day)
     );
 
   if (!game) return;
@@ -857,6 +1063,10 @@ async function editMatch(day) {
   openModal("editModal");
 }
 
+// ============================================================
+// GUARDAR PARTIDO
+// ============================================================
+
 async function saveMatch() {
 
   if (!currentSession) {
@@ -875,7 +1085,9 @@ async function saveMatch() {
 
   const game =
     SCHEDULE.find(
-      g => Number(g.day) === day
+      g =>
+        Number(g.day) ===
+        day
     );
 
   if (!game) return;
@@ -905,8 +1117,12 @@ async function saveMatch() {
     Number(awayScoreRaw);
 
   if (
-    !Number.isInteger(homeScore) ||
-    !Number.isInteger(awayScore) ||
+    !Number.isInteger(
+      homeScore
+    ) ||
+    !Number.isInteger(
+      awayScore
+    ) ||
     homeScore < 0 ||
     awayScore < 0
   ) {
@@ -926,15 +1142,19 @@ async function saveMatch() {
       await db
         .from("matches")
         .update({
-          home_score: homeScore,
-          away_score: awayScore
+          home_score:
+            homeScore,
+
+          away_score:
+            awayScore
         })
         .eq(
           "id",
           selectedMatchId
         );
 
-    error = result.error;
+    error =
+      result.error;
 
   } else {
 
@@ -942,17 +1162,33 @@ async function saveMatch() {
       await db
         .from("matches")
         .insert({
-          day: game.day,
-          date: game.date,
-          gender: game.gender,
-          group_name: game.group,
-          home_team: game.home,
-          away_team: game.away,
-          home_score: homeScore,
-          away_score: awayScore
+          day:
+            game.day,
+
+          date:
+            game.date,
+
+          gender:
+            game.gender,
+
+          group_name:
+            game.group,
+
+          home_team:
+            game.home,
+
+          away_team:
+            game.away,
+
+          home_score:
+            homeScore,
+
+          away_score:
+            awayScore
         });
 
-    error = result.error;
+    error =
+      result.error;
   }
 
   if (error) {
@@ -970,13 +1206,18 @@ async function saveMatch() {
     return;
   }
 
-  closeModal("editModal");
+  closeModal(
+    "editModal"
+  );
 
   await refreshAll();
 }
 
-window.editMatch = editMatch;
-window.saveMatch = saveMatch;
+window.editMatch =
+  editMatch;
+
+window.saveMatch =
+  saveMatch;
 
 // ============================================================
 // PUNTOS MANUALES
@@ -984,9 +1225,14 @@ window.saveMatch = saveMatch;
 
 async function loadPointAdjustments() {
 
-  const { data, error } =
+  const {
+    data,
+    error
+  } =
     await db
-      .from("point_adjustments")
+      .from(
+        "point_adjustments"
+      )
       .select("*");
 
   if (error) {
@@ -1001,7 +1247,8 @@ async function loadPointAdjustments() {
     return;
   }
 
-  pointAdjustments = data || [];
+  pointAdjustments =
+    data || [];
 }
 
 function getManualPoints(team) {
@@ -1012,8 +1259,9 @@ function getManualPoints(team) {
   const row =
     pointAdjustments.find(
       item =>
-        normalizeTeam(item.team) ===
-        normalized
+        normalizeTeam(
+          item.team
+        ) === normalized
     );
 
   return Number(
@@ -1021,13 +1269,22 @@ function getManualPoints(team) {
   );
 }
 
-function calculateStandings(teams) {
+// ============================================================
+// CALCULAR TABLA
+// ============================================================
+
+function calculateStandings(
+  teams
+) {
 
   const table = {};
 
-  for (const team of teams) {
+  for (
+    const team of teams
+  ) {
 
     table[team] = {
+
       team,
 
       PJ: 0,
@@ -1046,34 +1303,50 @@ function calculateStandings(teams) {
     };
   }
 
-  for (const game of SCHEDULE) {
+  for (
+    const game of SCHEDULE
+  ) {
 
     if (
-      !teams.includes(game.home) ||
-      !teams.includes(game.away)
+      !teams.includes(
+        game.home
+      ) ||
+      !teams.includes(
+        game.away
+      )
     ) {
       continue;
     }
 
     const saved =
-      getMatchForDay(game.day);
+      getMatchForDay(
+        game.day
+      );
 
     if (!saved) continue;
 
     if (
-      saved.home_score === null ||
-      saved.home_score === undefined ||
-      saved.away_score === null ||
-      saved.away_score === undefined
+      saved.home_score ===
+        null ||
+      saved.home_score ===
+        undefined ||
+      saved.away_score ===
+        null ||
+      saved.away_score ===
+        undefined
     ) {
       continue;
     }
 
     const homeScore =
-      Number(saved.home_score);
+      Number(
+        saved.home_score
+      );
 
     const awayScore =
-      Number(saved.away_score);
+      Number(
+        saved.away_score
+      );
 
     const home =
       table[game.home];
@@ -1081,24 +1354,36 @@ function calculateStandings(teams) {
     const away =
       table[game.away];
 
-    if (!home || !away) continue;
+    if (!home || !away)
+      continue;
 
     home.PJ++;
     away.PJ++;
 
-    home.GF += homeScore;
-    home.GC += awayScore;
+    home.GF +=
+      homeScore;
 
-    away.GF += awayScore;
-    away.GC += homeScore;
+    home.GC +=
+      awayScore;
+
+    away.GF +=
+      awayScore;
+
+    away.GC +=
+      homeScore;
 
     home.DG =
-      home.GF - home.GC;
+      home.GF -
+      home.GC;
 
     away.DG =
-      away.GF - away.GC;
+      away.GF -
+      away.GC;
 
-    if (homeScore > awayScore) {
+    if (
+      homeScore >
+      awayScore
+    ) {
 
       home.PG++;
 
@@ -1107,7 +1392,8 @@ function calculateStandings(teams) {
       away.PP++;
 
     } else if (
-      homeScore < awayScore
+      homeScore <
+      awayScore
     ) {
 
       away.PG++;
@@ -1127,29 +1413,59 @@ function calculateStandings(teams) {
   }
 
   for (
-    const team of Object.values(table)
+    const team of
+    Object.values(table)
   ) {
 
-    team.PTS += team.manual;
+    team.PTS +=
+      team.manual;
   }
 
-  return Object.values(table)
-    .sort((a, b) => {
+  return Object.values(
+    table
+  ).sort(
+    (a, b) => {
 
-      if (b.PTS !== a.PTS)
-        return b.PTS - a.PTS;
+      if (
+        b.PTS !==
+        a.PTS
+      ) {
+        return (
+          b.PTS -
+          a.PTS
+        );
+      }
 
-      if (b.DG !== a.DG)
-        return b.DG - a.DG;
+      if (
+        b.DG !==
+        a.DG
+      ) {
+        return (
+          b.DG -
+          a.DG
+        );
+      }
 
-      if (b.GF !== a.GF)
-        return b.GF - a.GF;
+      if (
+        b.GF !==
+        a.GF
+      ) {
+        return (
+          b.GF -
+          a.GF
+        );
+      }
 
       return a.team.localeCompare(
         b.team
       );
-    });
+    }
+  );
 }
+
+// ============================================================
+// RENDER TABLAS
+// ============================================================
 
 function renderStandings() {
 
@@ -1160,13 +1476,19 @@ function renderStandings() {
     $("womenTable");
 
   const menA =
-    calculateStandings(MEN_A);
+    calculateStandings(
+      MEN_A
+    );
 
   const menB =
-    calculateStandings(MEN_B);
+    calculateStandings(
+      MEN_B
+    );
 
   const women =
-    calculateStandings(WOMEN);
+    calculateStandings(
+      WOMEN
+    );
 
   if (menContainer) {
 
@@ -1174,7 +1496,9 @@ function renderStandings() {
 
       <div class="card">
 
-        <h3>Grupo A</h3>
+        <h3>
+          Grupo A
+        </h3>
 
         <div class="table-wrap">
 
@@ -1206,7 +1530,11 @@ function renderStandings() {
             </thead>
 
             <tbody>
-              ${renderStandingRows(menA)}
+
+              ${renderStandingRows(
+                menA
+              )}
+
             </tbody>
 
           </table>
@@ -1215,10 +1543,11 @@ function renderStandings() {
 
       </div>
 
-
       <div class="card">
 
-        <h3>Grupo B</h3>
+        <h3>
+          Grupo B
+        </h3>
 
         <div class="table-wrap">
 
@@ -1250,7 +1579,11 @@ function renderStandings() {
             </thead>
 
             <tbody>
-              ${renderStandingRows(menB)}
+
+              ${renderStandingRows(
+                menB
+              )}
+
             </tbody>
 
           </table>
@@ -1267,7 +1600,9 @@ function renderStandings() {
 
       <div class="card">
 
-        <h3>Tabla de Mujeres</h3>
+        <h3>
+          Tabla de Mujeres
+        </h3>
 
         <div class="table-wrap">
 
@@ -1299,7 +1634,11 @@ function renderStandings() {
             </thead>
 
             <tbody>
-              ${renderStandingRows(women)}
+
+              ${renderStandingRows(
+                women
+              )}
+
             </tbody>
 
           </table>
@@ -1311,7 +1650,9 @@ function renderStandings() {
   }
 }
 
-function renderStandingRows(rows) {
+function renderStandingRows(
+  rows
+) {
 
   return rows.map(
     (row, index) => `
@@ -1325,13 +1666,16 @@ function renderStandingRows(rows) {
         <td>
 
           <strong>
-            ${escapeHtml(row.team)}
+            ${escapeHtml(
+              row.team
+            )}
           </strong>
 
           ${
             row.manual !== 0
               ? `
                 <br>
+
                 <small>
                   Manual:
                   ${
@@ -1366,7 +1710,9 @@ function renderStandingRows(rows) {
 
                 <button
                   class="outline"
-                  onclick="editTeamPoints('${escapeHtml(row.team)}')"
+                  onclick="editTeamPoints('${escapeHtml(
+                    row.team
+                  )}')"
                 >
                   Editar
                 </button>
@@ -1385,7 +1731,9 @@ function renderStandingRows(rows) {
 // EDITAR PUNTOS MANUALES
 // ============================================================
 
-async function editTeamPoints(teamName) {
+async function editTeamPoints(
+  teamName
+) {
 
   if (!currentSession) {
 
@@ -1397,7 +1745,9 @@ async function editTeamPoints(teamName) {
   }
 
   const team =
-    normalizeTeam(teamName);
+    normalizeTeam(
+      teamName
+    );
 
   const current =
     getManualPoints(team);
@@ -1410,14 +1760,22 @@ async function editTeamPoints(teamName) {
       String(current)
     );
 
-  if (newValue === null) return;
+  if (
+    newValue === null
+  ) {
+    return;
+  }
 
   const points =
     Number(newValue);
 
   if (
-    !Number.isFinite(points) ||
-    !Number.isInteger(points)
+    !Number.isFinite(
+      points
+    ) ||
+    !Number.isInteger(
+      points
+    )
   ) {
 
     alert(
@@ -1433,18 +1791,28 @@ async function editTeamPoints(teamName) {
       ""
     );
 
-  if (reason === null) return;
+  if (
+    reason === null
+  ) {
+    return;
+  }
 
   const {
     data: existingRows,
     error: selectError
-  } = await db
-    .from("point_adjustments")
-    .select(
-      "id, team, points, reason, updated_at"
-    )
-    .eq("team", team)
-    .limit(1);
+  } =
+    await db
+      .from(
+        "point_adjustments"
+      )
+      .select(
+        "id, team, points, reason, updated_at"
+      )
+      .eq(
+        "team",
+        team
+      )
+      .limit(1);
 
   if (selectError) {
 
@@ -1461,7 +1829,8 @@ async function editTeamPoints(teamName) {
     return;
   }
 
-  let saveError = null;
+  let saveError =
+    null;
 
   if (
     existingRows &&
@@ -1473,7 +1842,9 @@ async function editTeamPoints(teamName) {
 
     const result =
       await db
-        .from("point_adjustments")
+        .from(
+          "point_adjustments"
+        )
         .update({
           team,
           points,
@@ -1493,7 +1864,9 @@ async function editTeamPoints(teamName) {
 
     const result =
       await db
-        .from("point_adjustments")
+        .from(
+          "point_adjustments"
+        )
         .insert({
           team,
           points,
@@ -1537,7 +1910,10 @@ window.editTeamPoints =
 
 async function loadScorers() {
 
-  const { data, error } =
+  const {
+    data,
+    error
+  } =
     await db
       .from("scorers")
       .select("*")
@@ -1560,14 +1936,20 @@ async function loadScorers() {
     return;
   }
 
-  scorersData = data || [];
+  scorersData =
+    data || [];
 
   scorersData =
-    scorersData.map(player => ({
-      ...player,
-      team:
-        normalizeTeam(player.team)
-    }));
+    scorersData.map(
+      player => ({
+        ...player,
+
+        team:
+          normalizeTeam(
+            player.team
+          )
+      })
+    );
 }
 
 function renderScorers() {
@@ -1580,27 +1962,42 @@ function renderScorers() {
 
   const menScorers =
     scorersData
-      .filter(player =>
-        isMen(player.team)
+      .filter(
+        player =>
+          isMen(
+            player.team
+          )
       )
       .sort(
         (a, b) =>
-          Number(b.goals || 0) -
-          Number(a.goals || 0)
+          Number(
+            b.goals || 0
+          ) -
+          Number(
+            a.goals || 0
+          )
       );
 
   const womenScorers =
     scorersData
-      .filter(player =>
-        isWomen(player.team)
+      .filter(
+        player =>
+          isWomen(
+            player.team
+          )
       )
       .sort(
         (a, b) =>
-          Number(b.goals || 0) -
-          Number(a.goals || 0)
+          Number(
+            b.goals || 0
+          ) -
+          Number(
+            a.goals || 0
+          )
       );
 
   if (men) {
+
     men.innerHTML =
       renderScorerRows(
         menScorers
@@ -1608,6 +2005,7 @@ function renderScorers() {
   }
 
   if (women) {
+
     women.innerHTML =
       renderScorerRows(
         womenScorers
@@ -1615,7 +2013,9 @@ function renderScorers() {
   }
 }
 
-function renderScorerRows(rows) {
+function renderScorerRows(
+  rows
+) {
 
   if (!rows.length) {
 
@@ -1623,7 +2023,11 @@ function renderScorerRows(rows) {
       <tr>
 
         <td
-          colspan="${currentSession ? 5 : 4}"
+          colspan="${
+            currentSession
+              ? 5
+              : 4
+          }"
         >
           No hay goleadores registrados.
         </td>
@@ -1651,16 +2055,19 @@ function renderScorerRows(rows) {
 
         <td>
           ${escapeHtml(
-            player.team || ""
+            player.team ||
+            ""
           )}
         </td>
 
         <td>
+
           <strong>
             ${Number(
               player.goals || 0
             )}
           </strong>
+
         </td>
 
         ${
@@ -1670,14 +2077,18 @@ function renderScorerRows(rows) {
 
                 <button
                   class="outline"
-                  onclick="editScorer('${escapeHtml(player.id)}')"
+                  onclick="editScorer('${escapeHtml(
+                    player.id
+                  )}')"
                 >
                   Editar
                 </button>
 
                 <button
                   class="danger"
-                  onclick="deleteScorer('${escapeHtml(player.id)}')"
+                  onclick="deleteScorer('${escapeHtml(
+                    player.id
+                  )}')"
                 >
                   Eliminar
                 </button>
@@ -1716,12 +2127,19 @@ async function addScorer() {
       ALL_TEAMS.join("\n")
     );
 
-  if (!teamInput) return;
+  if (!teamInput)
+    return;
 
   const team =
-    normalizeTeam(teamInput);
+    normalizeTeam(
+      teamInput
+    );
 
-  if (!ALL_TEAMS.includes(team)) {
+  if (
+    !ALL_TEAMS.includes(
+      team
+    )
+  ) {
 
     alert(
       "Ese equipo no existe."
@@ -1736,13 +2154,21 @@ async function addScorer() {
       "0"
     );
 
-  if (goalsInput === null) return;
+  if (
+    goalsInput === null
+  ) {
+    return;
+  }
 
   const goals =
-    Number(goalsInput);
+    Number(
+      goalsInput
+    );
 
   if (
-    !Number.isInteger(goals) ||
+    !Number.isInteger(
+      goals
+    ) ||
     goals < 0
   ) {
 
@@ -1753,7 +2179,9 @@ async function addScorer() {
     return;
   }
 
-  const { error } =
+  const {
+    error
+  } =
     await db
       .from("scorers")
       .insert({
@@ -1780,7 +2208,9 @@ async function addScorer() {
   await refreshAll();
 }
 
-async function editScorer(id) {
+async function editScorer(
+  id
+) {
 
   if (!currentSession) {
 
@@ -1794,11 +2224,14 @@ async function editScorer(id) {
   const playerData =
     scorersData.find(
       player =>
-        String(player.id) ===
+        String(
+          player.id
+        ) ===
         String(id)
     );
 
-  if (!playerData) return;
+  if (!playerData)
+    return;
 
   const player =
     prompt(
@@ -1808,20 +2241,29 @@ async function editScorer(id) {
       ""
     );
 
-  if (!player) return;
+  if (!player)
+    return;
 
   const teamInput =
     prompt(
       "Equipo:",
-      playerData.team || ""
+      playerData.team ||
+      ""
     );
 
-  if (!teamInput) return;
+  if (!teamInput)
+    return;
 
   const team =
-    normalizeTeam(teamInput);
+    normalizeTeam(
+      teamInput
+    );
 
-  if (!ALL_TEAMS.includes(team)) {
+  if (
+    !ALL_TEAMS.includes(
+      team
+    )
+  ) {
 
     alert(
       "Ese equipo no existe."
@@ -1834,17 +2276,26 @@ async function editScorer(id) {
     prompt(
       "Cantidad de goles:",
       String(
-        playerData.goals || 0
+        playerData.goals ||
+        0
       )
     );
 
-  if (goalsInput === null) return;
+  if (
+    goalsInput === null
+  ) {
+    return;
+  }
 
   const goals =
-    Number(goalsInput);
+    Number(
+      goalsInput
+    );
 
   if (
-    !Number.isInteger(goals) ||
+    !Number.isInteger(
+      goals
+    ) ||
     goals < 0
   ) {
 
@@ -1855,7 +2306,9 @@ async function editScorer(id) {
     return;
   }
 
-  const { error } =
+  const {
+    error
+  } =
     await db
       .from("scorers")
       .update({
@@ -1863,7 +2316,10 @@ async function editScorer(id) {
         team,
         goals
       })
-      .eq("id", id);
+      .eq(
+        "id",
+        id
+      );
 
   if (error) {
 
@@ -1883,7 +2339,9 @@ async function editScorer(id) {
   await refreshAll();
 }
 
-async function deleteScorer(id) {
+async function deleteScorer(
+  id
+) {
 
   if (!currentSession) {
 
@@ -1902,11 +2360,16 @@ async function deleteScorer(id) {
     return;
   }
 
-  const { error } =
+  const {
+    error
+  } =
     await db
       .from("scorers")
       .delete()
-      .eq("id", id);
+      .eq(
+        "id",
+        id
+      );
 
   if (error) {
 
@@ -1941,7 +2404,10 @@ window.deleteScorer =
 
 async function loadSanctions() {
 
-  const { data, error } =
+  const {
+    data,
+    error
+  } =
     await db
       .from("sanctions")
       .select("*")
@@ -1964,14 +2430,20 @@ async function loadSanctions() {
     return;
   }
 
-  sanctionsData = data || [];
+  sanctionsData =
+    data || [];
 
   sanctionsData =
-    sanctionsData.map(item => ({
-      ...item,
-      team:
-        normalizeTeam(item.team)
-    }));
+    sanctionsData.map(
+      item => ({
+        ...item,
+
+        team:
+          normalizeTeam(
+            item.team
+          )
+      })
+    );
 }
 
 function renderSanctions() {
@@ -1979,9 +2451,12 @@ function renderSanctions() {
   const container =
     $("sanctions");
 
-  if (!container) return;
+  if (!container)
+    return;
 
-  if (!sanctionsData.length) {
+  if (
+    !sanctionsData.length
+  ) {
 
     container.innerHTML = `
       <div class="empty">
@@ -1999,30 +2474,38 @@ function renderSanctions() {
         <div class="sanction">
 
           <div>
+
             <strong>
               ${escapeHtml(
-                item.player || ""
+                item.player ||
+                ""
               )}
             </strong>
+
           </div>
 
           <div>
             ${escapeHtml(
-              item.team || ""
+              item.team ||
+              ""
             )}
           </div>
 
           <div>
+
             <strong>
               ${escapeHtml(
-                item.type || ""
+                item.type ||
+                ""
               )}
             </strong>
+
           </div>
 
           <div>
             ${escapeHtml(
-              item.description || ""
+              item.description ||
+              ""
             )}
           </div>
 
@@ -2033,14 +2516,18 @@ function renderSanctions() {
 
                   <button
                     class="outline"
-                    onclick="editSanction('${escapeHtml(item.id)}')"
+                    onclick="editSanction('${escapeHtml(
+                      item.id
+                    )}')"
                   >
                     Editar
                   </button>
 
                   <button
                     class="danger"
-                    onclick="deleteSanction('${escapeHtml(item.id)}')"
+                    onclick="deleteSanction('${escapeHtml(
+                      item.id
+                    )}')"
                   >
                     Eliminar
                   </button>
@@ -2071,7 +2558,8 @@ function chooseSanctionType(
       "3 = Suspensión\n" +
       "4 = Otra\n\n" +
       `Actual: ${
-        currentType || "Ninguna"
+        currentType ||
+        "Ninguna"
       }\n\n` +
       "Escribe 1, 2, 3 o 4:",
 
@@ -2090,17 +2578,30 @@ function chooseSanctionType(
         : "1"
     );
 
-  if (choice === null)
+  if (
+    choice === null
+  ) {
     return null;
+  }
 
   const value =
-    String(choice).trim();
+    String(
+      choice
+    ).trim();
 
   const types = {
-    "1": "Tarjeta amarilla",
-    "2": "Tarjeta roja",
-    "3": "Suspensión",
-    "4": "Otra"
+
+    "1":
+      "Tarjeta amarilla",
+
+    "2":
+      "Tarjeta roja",
+
+    "3":
+      "Suspensión",
+
+    "4":
+      "Otra"
   };
 
   if (!types[value]) {
@@ -2135,7 +2636,8 @@ async function addSanction() {
       "Nombre del jugador:"
     );
 
-  if (!player) return;
+  if (!player)
+    return;
 
   const teamInput =
     prompt(
@@ -2143,12 +2645,19 @@ async function addSanction() {
       ALL_TEAMS.join("\n")
     );
 
-  if (!teamInput) return;
+  if (!teamInput)
+    return;
 
   const team =
-    normalizeTeam(teamInput);
+    normalizeTeam(
+      teamInput
+    );
 
-  if (!ALL_TEAMS.includes(team)) {
+  if (
+    !ALL_TEAMS.includes(
+      team
+    )
+  ) {
 
     alert(
       "Ese equipo no existe."
@@ -2160,7 +2669,8 @@ async function addSanction() {
   const type =
     chooseSanctionType();
 
-  if (!type) return;
+  if (!type)
+    return;
 
   const description =
     prompt(
@@ -2168,10 +2678,15 @@ async function addSanction() {
       ""
     );
 
-  if (description === null)
+  if (
+    description === null
+  ) {
     return;
+  }
 
-  const { error } =
+  const {
+    error
+  } =
     await db
       .from("sanctions")
       .insert({
@@ -2203,7 +2718,9 @@ async function addSanction() {
 // EDITAR SANCIÓN
 // ============================================================
 
-async function editSanction(id) {
+async function editSanction(
+  id
+) {
 
   if (!currentSession) {
 
@@ -2217,32 +2734,45 @@ async function editSanction(id) {
   const sanction =
     sanctionsData.find(
       item =>
-        String(item.id) ===
+        String(
+          item.id
+        ) ===
         String(id)
     );
 
-  if (!sanction) return;
+  if (!sanction)
+    return;
 
   const player =
     prompt(
       "Nombre del jugador:",
-      sanction.player || ""
+      sanction.player ||
+      ""
     );
 
-  if (!player) return;
+  if (!player)
+    return;
 
   const teamInput =
     prompt(
       "Equipo:",
-      sanction.team || ""
+      sanction.team ||
+      ""
     );
 
-  if (!teamInput) return;
+  if (!teamInput)
+    return;
 
   const team =
-    normalizeTeam(teamInput);
+    normalizeTeam(
+      teamInput
+    );
 
-  if (!ALL_TEAMS.includes(team)) {
+  if (
+    !ALL_TEAMS.includes(
+      team
+    )
+  ) {
 
     alert(
       "Ese equipo no existe."
@@ -2253,21 +2783,29 @@ async function editSanction(id) {
 
   const type =
     chooseSanctionType(
-      sanction.type || ""
+      sanction.type ||
+      ""
     );
 
-  if (!type) return;
+  if (!type)
+    return;
 
   const description =
     prompt(
       "Descripción de la sanción:",
-      sanction.description || ""
+      sanction.description ||
+      ""
     );
 
-  if (description === null)
+  if (
+    description === null
+  ) {
     return;
+  }
 
-  const { error } =
+  const {
+    error
+  } =
     await db
       .from("sanctions")
       .update({
@@ -2276,7 +2814,10 @@ async function editSanction(id) {
         type,
         description
       })
-      .eq("id", id);
+      .eq(
+        "id",
+        id
+      );
 
   if (error) {
 
@@ -2300,7 +2841,9 @@ async function editSanction(id) {
 // ELIMINAR SANCIÓN
 // ============================================================
 
-async function deleteSanction(id) {
+async function deleteSanction(
+  id
+) {
 
   if (!currentSession) {
 
@@ -2319,11 +2862,16 @@ async function deleteSanction(id) {
     return;
   }
 
-  const { error } =
+  const {
+    error
+  } =
     await db
       .from("sanctions")
       .delete()
-      .eq("id", id);
+      .eq(
+        "id",
+        id
+      );
 
   if (error) {
 
@@ -2358,9 +2906,14 @@ window.deleteSanction =
 
 async function loadCleanliness() {
 
-  const { data, error } =
+  const {
+    data,
+    error
+  } =
     await db
-      .from("cleanliness_scores")
+      .from(
+        "cleanliness_scores"
+      )
       .select("*");
 
   if (error) {
@@ -2379,7 +2932,9 @@ async function loadCleanliness() {
     data || [];
 }
 
-function getCleanlinessName(row) {
+function getCleanlinessName(
+  row
+) {
 
   return (
     row.grade ??
@@ -2390,7 +2945,9 @@ function getCleanlinessName(row) {
   );
 }
 
-function getCleanlinessPoints(row) {
+function getCleanlinessPoints(
+  row
+) {
 
   return Number(
     row.points ??
@@ -2400,16 +2957,27 @@ function getCleanlinessPoints(row) {
   );
 }
 
-function getCleanlinessPointsColumn(row) {
+function getCleanlinessPointsColumn(
+  row
+) {
 
-  if ("points" in row)
+  if (
+    "points" in row
+  ) {
     return "points";
+  }
 
-  if ("score" in row)
+  if (
+    "score" in row
+  ) {
     return "score";
+  }
 
-  if ("puntos" in row)
+  if (
+    "puntos" in row
+  ) {
     return "puntos";
+  }
 
   return "points";
 }
@@ -2419,15 +2987,22 @@ function renderCleanliness() {
   const tbody =
     $("cleanlinessTable");
 
-  if (!tbody) return;
+  if (!tbody)
+    return;
 
-  if (!cleanlinessData.length) {
+  if (
+    !cleanlinessData.length
+  ) {
 
     tbody.innerHTML = `
       <tr>
 
         <td
-          colspan="${currentSession ? 4 : 3}"
+          colspan="${
+            currentSession
+              ? 4
+              : 3
+          }"
         >
           No hay datos registrados.
         </td>
@@ -2443,12 +3018,17 @@ function renderCleanliness() {
       (row, index) => {
 
         const name =
-          getCleanlinessName(row);
+          getCleanlinessName(
+            row
+          );
 
         const points =
-          getCleanlinessPoints(row);
+          getCleanlinessPoints(
+            row
+          );
 
         return `
+
           <tr>
 
             <td>
@@ -2456,15 +3036,21 @@ function renderCleanliness() {
             </td>
 
             <td>
+
               <strong>
-                ${escapeHtml(name)}
+                ${escapeHtml(
+                  name
+                )}
               </strong>
+
             </td>
 
             <td>
+
               <strong>
                 ${points}
               </strong>
+
             </td>
 
             ${
@@ -2474,7 +3060,11 @@ function renderCleanliness() {
 
                     <button
                       class="outline"
-                      onclick="editCleanliness('${escapeHtml(String(row.id))}')"
+                      onclick="editCleanliness('${escapeHtml(
+                        String(
+                          row.id
+                        )
+                      )}')"
                     >
                       Editar
                     </button>
@@ -2490,7 +3080,13 @@ function renderCleanliness() {
     ).join("");
 }
 
-async function editCleanliness(id) {
+// ============================================================
+// EDITAR GRADO
+// ============================================================
+
+async function editCleanliness(
+  id
+) {
 
   if (!currentSession) {
 
@@ -2504,7 +3100,9 @@ async function editCleanliness(id) {
   const row =
     cleanlinessData.find(
       item =>
-        String(item.id) ===
+        String(
+          item.id
+        ) ===
         String(id)
     );
 
@@ -2518,28 +3116,43 @@ async function editCleanliness(id) {
   }
 
   const name =
-    getCleanlinessName(row);
+    getCleanlinessName(
+      row
+    );
 
   const currentPoints =
-    getCleanlinessPoints(row);
+    getCleanlinessPoints(
+      row
+    );
 
   const newPoints =
     prompt(
       `Puntos de limpieza para ${name}.\n\n` +
       `Puntos actuales: ${currentPoints}\n\n` +
       `Escribe los nuevos puntos:`,
-      String(currentPoints)
+      String(
+        currentPoints
+      )
     );
 
-  if (newPoints === null)
+  if (
+    newPoints === null
+  ) {
     return;
+  }
 
   const points =
-    Number(newPoints);
+    Number(
+      newPoints
+    );
 
   if (
-    !Number.isFinite(points) ||
-    !Number.isInteger(points)
+    !Number.isFinite(
+      points
+    ) ||
+    !Number.isInteger(
+      points
+    )
   ) {
 
     alert(
@@ -2549,7 +3162,9 @@ async function editCleanliness(id) {
     return;
   }
 
-  if (points < 0) {
+  if (
+    points < 0
+  ) {
 
     alert(
       "Los puntos no pueden ser negativos."
@@ -2559,18 +3174,31 @@ async function editCleanliness(id) {
   }
 
   const pointsColumn =
-    getCleanlinessPointsColumn(row);
+    getCleanlinessPointsColumn(
+      row
+    );
 
-  const updateData = {};
+  const updateData =
+    {};
 
-  updateData[pointsColumn] =
-    points;
+  updateData[
+    pointsColumn
+  ] = points;
 
-  const { error } =
+  const {
+    error
+  } =
     await db
-      .from("cleanliness_scores")
-      .update(updateData)
-      .eq("id", row.id);
+      .from(
+        "cleanliness_scores"
+      )
+      .update(
+        updateData
+      )
+      .eq(
+        "id",
+        row.id
+      );
 
   if (error) {
 
@@ -2608,23 +3236,29 @@ function setupEvents() {
 
   if (loginBtn) {
 
-    loginBtn.onclick = () => {
+    loginBtn.onclick =
+      () => {
 
-      if (currentSession) {
+        if (
+          currentSession
+        ) {
 
-        logout();
+          logout();
 
-      } else {
+        } else {
 
-        openModal("authModal");
-      }
-    };
+          openModal(
+            "authModal"
+          );
+        }
+      };
   }
 
   const addScorerBtn =
     $("addScorerBtn");
 
   if (addScorerBtn) {
+
     addScorerBtn.onclick =
       addScorer;
   }
@@ -2633,6 +3267,7 @@ function setupEvents() {
     $("addSanctionBtn");
 
   if (addSanctionBtn) {
+
     addSanctionBtn.onclick =
       addSanction;
   }
@@ -2692,17 +3327,20 @@ db.auth.onAuthStateChange(
     currentSession =
       session;
 
-    setTimeout(() => {
+    setTimeout(
+      () => {
 
-      updateAuthUI();
+        updateAuthUI();
 
-      renderStandings();
-      renderMatches();
-      renderScorers();
-      renderSanctions();
-      renderCleanliness();
+        renderStandings();
+        renderMatches();
+        renderScorers();
+        renderSanctions();
+        renderCleanliness();
 
-    }, 0);
+      },
+      0
+    );
   }
 );
 
@@ -2727,12 +3365,17 @@ document.addEventListener(
 );
 
 // ============================================================
-// EXPORTAR FUNCIONES
+// FUNCIONES GLOBALES
 // ============================================================
 
-window.login = login;
-window.logout = logout;
-window.refreshAll = refreshAll;
+window.login =
+  login;
+
+window.logout =
+  logout;
+
+window.refreshAll =
+  refreshAll;
 
 console.log(
   "INTERAULAS: funciones globales cargadas correctamente."
